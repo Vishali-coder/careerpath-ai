@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CareerPath AI - Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--card:#141c2e;--border:rgba(99,179,237,0.18);--border2:rgba(99,179,237,0.35);--text:#e2e8f0;--muted:#8899aa;--accent:#38bdf8;--accent2:#818cf8;--green:#34d399;--amber:#fbbf24;--red:#f87171;--grad1:linear-gradient(135deg,#38bdf8,#818cf8)}
+/* ── LIGHT MODE ── */
+body.light{--bg:#f0f4f8;--bg2:#ffffff;--bg3:#e8edf3;--card:#ffffff;--border:rgba(59,130,246,0.18);--border2:rgba(59,130,246,0.4);--text:#1a202c;--muted:#64748b;--accent:#0284c7;--accent2:#6366f1;--green:#059669;--amber:#d97706;--red:#dc2626;--grad1:linear-gradient(135deg,#0284c7,#6366f1)}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background 0.25s,color 0.25s}
+button{cursor:pointer;font-family:'Sora',sans-serif}
+.topbar,.sidebar,.section-card,.stat-card,.modal,.form-input,.tbl td,.tbl th,.export-card,.login-card{transition:background 0.25s,border-color 0.25s,color 0.25s}
+.theme-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;font-size:0.95rem;transition:all 0.2s;flex-shrink:0}
+.theme-btn:hover{background:var(--border)}
+.hidden{display:none!important}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.5rem;width:100%;max-width:400px}
+.logo{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:500;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1rem}
+.card-title{font-size:1.4rem;font-weight:700;margin-bottom:.3rem}
+.card-sub{font-size:.82rem;color:var(--muted);margin-bottom:1.75rem}
+.form-group{margin-bottom:1.1rem}
+.form-label{display:block;font-size:.75rem;font-weight:500;color:var(--muted);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.06em}
+.form-input{width:100%;padding:.65rem .9rem;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Sora',sans-serif;font-size:.875rem;transition:border .2s}
+.form-input:focus{outline:none;border-color:var(--accent)}
+.btn-primary{width:100%;padding:.75rem;border-radius:10px;border:none;background:var(--grad1);color:#0a0e1a;font-size:.9rem;font-weight:600}
+.btn-primary:hover{opacity:.88}
+.alert-err{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:#fca5a5;padding:.65rem 1rem;border-radius:8px;font-size:.82rem;margin-bottom:1rem;display:none}
+.app{display:none;min-height:100vh;flex-direction:column}
+.app.active{display:flex}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-logo{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:500;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.admin-badge{background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.35);color:#f87171;font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:20px}
+.btn-logout{padding:.4rem 1rem;border-radius:8px;border:1px solid rgba(248,113,113,.4);background:rgba(248,113,113,.1);color:#f87171;font-size:.78rem;font-weight:600}
+.body-wrap{display:flex;flex:1}
+.sidebar{width:200px;background:var(--bg2);border-right:1px solid var(--border);padding:1.25rem 0;flex-shrink:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:.65rem 1.25rem;font-size:.85rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{color:var(--text);background:rgba(56,189,248,.05)}
+.nav-item.active{color:var(--accent);background:rgba(56,189,248,.08);border-left-color:var(--accent)}
+.main{flex:1;padding:2rem;overflow-y:auto}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-size:1.4rem;font-weight:700;margin-bottom:.3rem}
+.page-sub{font-size:.82rem;color:var(--muted);margin-bottom:2rem}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem;margin-bottom:2rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.blue::before{background:linear-gradient(90deg,#38bdf8,#818cf8)}
+.green::before{background:linear-gradient(90deg,#34d399,#38bdf8)}
+.purple::before{background:#818cf8}
+.amber::before{background:#fbbf24}
+.pink::before{background:#f472b6}
+.cyan::before{background:#22d3ee}
+.teal::before{background:#2dd4bf}
+.indigo::before{background:#6366f1}
+.orange::before{background:#fb923c}
+.stat-icon{font-size:1.5rem;margin-bottom:.5rem}
+.stat-value{font-size:1.75rem;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1}
+.stat-label{font-size:.72rem;color:var(--muted);margin-top:4px}
+.section-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem}
+.section-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:.75rem}
+.section-title{font-size:.95rem;font-weight:600}
+.search-input{padding:.45rem .85rem;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Sora',sans-serif;font-size:.8rem;width:220px}
+.search-input:focus{outline:none;border-color:var(--accent)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{padding:.75rem 1rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);background:var(--bg3)}
+.tbl td{padding:.75rem 1rem;font-size:.82rem;border-bottom:1px solid rgba(99,179,237,.08);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(56,189,248,.03)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.7rem;font-weight:600}
+.b-student{background:rgba(56,189,248,.15);color:var(--accent)}
+.b-school{background:rgba(251,191,36,.15);color:var(--amber)}
+.b-passedOut{background:rgba(52,211,153,.15);color:var(--green)}
+.b-advanced{background:rgba(129,140,248,.15);color:var(--accent2)}
+.b-basic{background:rgba(251,191,36,.15);color:var(--amber)}
+.b-none{background:rgba(136,153,170,.15);color:var(--muted)}
+.btn-sm{padding:4px 12px;border-radius:6px;font-size:.75rem;font-weight:500;margin-right:4px}
+.btn-view{border:1px solid var(--border2);background:transparent;color:var(--accent)}
+.btn-view:hover{background:rgba(56,189,248,.1)}
+.btn-del{border:1px solid rgba(248,113,113,.35);background:transparent;color:var(--red)}
+.btn-del:hover{background:rgba(248,113,113,.1)}
+.btn-rst{border:1px solid rgba(251,191,36,.35);background:transparent;color:var(--amber)}
+.btn-rst:hover{background:rgba(251,191,36,.1)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1}
+.modal-title{font-size:1rem;font-weight:600}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1}
+.modal-body{padding:1.5rem}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.5rem}
+.detail-item{background:var(--bg3);border-radius:8px;padding:.75rem}
+.detail-key{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.detail-val{font-size:.85rem;font-weight:500;word-break:break-all}
+.assess-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.assess-row:last-child{border-bottom:none}
+.export-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:2rem;max-width:500px;margin-bottom:1.5rem}
+.btn-export{padding:.7rem 1.5rem;border-radius:10px;border:none;background:var(--grad1);color:#0a0e1a;font-size:.88rem;font-weight:600}
+.empty{text-align:center;padding:2.5rem;color:var(--muted);font-size:.85rem}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;padding:.75rem 1.25rem;border-radius:10px;font-size:.82rem;font-weight:500;z-index:9999;display:none}
+.toast.ok{background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.4);color:var(--green)}
+.toast.err{background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.4);color:var(--red)}
+</style>
+</head>
+<body>
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="logo">&#x2022; CareerPath AI</div>
+    <div class="card-title">Admin Dashboard</div>
+    <div class="card-sub">Sign in to manage users and view stats</div>
+    <div class="alert-err" id="loginErr"></div>
+    <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="adminUser" placeholder="admin" /></div>
+    <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="adminPass" type="password" placeholder="password" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+    <button class="btn-primary" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">&#x2022; CareerPath AI</div>
+      <span class="admin-badge">ADMIN</span>
+    </div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
+    <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+  </div>
+  <div class="body-wrap">
+    <div class="sidebar">
+      <div class="nav-item active" onclick="showPage('dashboard',this)"><span>&#x1F4CA;</span> Dashboard</div>
+      <div class="nav-item" onclick="showPage('users',this)"><span>&#x1F465;</span> Users</div>
+      <div class="nav-item" onclick="showPage('export',this)"><span>&#x1F4E4;</span> Export</div>
+    </div>
+    <div class="main">
+
+      <!-- DASHBOARD PAGE -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Overview of all CareerPath AI activity</div>
+        <div class="stats-grid">
+          <div class="stat-card blue"><div class="stat-icon">&#x1F465;</div><div class="stat-value" id="s-users">-</div><div class="stat-label">Total Users</div></div>
+          <div class="stat-card purple"><div class="stat-icon">&#x1F4DD;</div><div class="stat-value" id="s-screening">-</div><div class="stat-label">Screening Tests</div></div>
+          <div class="stat-card green"><div class="stat-icon">&#x1F3AF;</div><div class="stat-value" id="s-progress">-</div><div class="stat-label">Progress Tests</div></div>
+          <div class="stat-card amber"><div class="stat-icon">&#x1F5FA;</div><div class="stat-value" id="s-roadmaps">-</div><div class="stat-label">Roadmaps</div></div>
+          <div class="stat-card pink"><div class="stat-icon">&#x1F4C4;</div><div class="stat-value" id="s-resumes">-</div><div class="stat-label">Resumes</div></div>
+          <div class="stat-card cyan"><div class="stat-icon">&#x25;</div><div class="stat-value" id="s-avg-s">-</div><div class="stat-label">Avg Screening %</div></div>
+          <div class="stat-card teal"><div class="stat-icon">&#x25;</div><div class="stat-value" id="s-avg-p">-</div><div class="stat-label">Avg Progress %</div></div>
+          <div class="stat-card indigo"><div class="stat-icon">&#x2B50;</div><div class="stat-value" id="s-advanced">-</div><div class="stat-label">Advanced Level</div></div>
+          <div class="stat-card orange"><div class="stat-icon">&#x1F4DA;</div><div class="stat-value" id="s-basic">-</div><div class="stat-label">Basic Level</div></div>
+        </div>
+        <div class="section-card">
+          <div class="section-head"><div class="section-title">Recent Registrations</div></div>
+          <table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Joined</th></tr></thead>
+          <tbody id="recent-tbody"><tr><td colspan="3" class="empty">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- USERS PAGE -->
+      <div class="page" id="page-users">
+        <div class="page-title">Users</div>
+        <div class="page-sub">Manage all registered users</div>
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-title">All Users</div>
+            <input class="search-input" id="userSearch" placeholder="Search name, email, skills..." oninput="filterUsers()" />
+          </div>
+          <div style="overflow-x:auto">
+          <table class="tbl"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Type</th><th>Skills</th><th>Level</th><th>Tests</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="9" class="empty">Loading...</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPORT PAGE -->
+      <div class="page" id="page-export">
+        <div class="page-title">Export Data</div>
+        <div class="page-sub">Download all data as JSON</div>
+        <div class="export-card">
+          <div style="font-size:.95rem;font-weight:600;margin-bottom:.5rem">Export All Data</div>
+          <div style="font-size:.82rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.6">Downloads a JSON file containing all users, assessments, and metadata. Useful for backups or analysis.</div>
+          <button class="btn-export" onclick="doExport()">&#x2B07; Download JSON</button>
+        </div>
+        <div class="export-card">
+          <div style="font-size:.95rem;font-weight:600;margin-bottom:.5rem">Admin Credentials</div>
+          <div style="font-size:.82rem;color:var(--muted);margin-bottom:.75rem;line-height:1.6">Change admin username and password by setting environment variables before starting the app:</div>
+          <code style="background:var(--bg3);padding:.75rem 1rem;border-radius:8px;font-size:.8rem;display:block;color:var(--accent);font-family:'JetBrains Mono',monospace">ADMIN_USERNAME=yourname<br>ADMIN_PASSWORD=yourpassword</code>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- USER DETAIL MODAL -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-name">User Details</div>
+      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="modal-body">Loading...</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let allUsers = [];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+async function api(path, method, body) {
+  method = method || 'GET';
+  const opts = { method: method, credentials: 'include', headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+function toast(msg, type) {
+  type = type || 'ok';
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + type;
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 3000);
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function fmtDateTime(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display = 'none';
+  const username = document.getElementById('adminUser').value.trim();
+  const password = document.getElementById('adminPass').value;
+  if (!username || !password) {
+    errEl.textContent = 'Please enter username and password.';
+    errEl.style.display = '';
+    return;
+  }
+  try {
+    await api('/api/admin/login', 'POST', { username: username, password: password });
+    document.getElementById('loginWrap').classList.add('hidden');
+    document.getElementById('app').classList.add('active');
+    loadDashboard();
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = '';
+  }
+}
+
+async function doLogout() {
+  try { await api('/api/admin/logout', 'POST'); } catch (e) {}
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('loginWrap').classList.remove('hidden');
+  document.getElementById('adminUser').value = '';
+  document.getElementById('adminPass').value = '';
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  document.getElementById('page-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'users') loadUsers();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const d = await api('/api/admin/stats');
+    document.getElementById('s-users').textContent     = d.total_users;
+    document.getElementById('s-screening').textContent = d.total_screening;
+    document.getElementById('s-progress').textContent  = d.total_progress;
+    document.getElementById('s-roadmaps').textContent  = d.total_roadmaps;
+    document.getElementById('s-resumes').textContent   = d.total_resumes;
+    document.getElementById('s-avg-s').textContent     = d.avg_screening_pct + '%';
+    document.getElementById('s-avg-p').textContent     = d.avg_progress_pct + '%';
+    document.getElementById('s-advanced').textContent  = d.advanced_count;
+    document.getElementById('s-basic').textContent     = d.basic_count;
+
+    const tbody = document.getElementById('recent-tbody');
+    if (!d.recent_users || d.recent_users.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" class="empty">No users yet.</td></tr>';
+    } else {
+      tbody.innerHTML = d.recent_users.map(function(u) {
+        return '<tr><td>' + esc(u.name) + '</td><td style="color:var(--muted)">' + esc(u.email) + '</td><td style="color:var(--muted)">' + fmtDate(u.created_at) + '</td></tr>';
+      }).join('');
+    }
+  } catch (e) {
+    toast('Failed to load stats: ' + e.message, 'err');
+  }
+}
+
+// ── USERS ─────────────────────────────────────────────────────────────────────
+async function loadUsers() {
+  const tbody = document.getElementById('users-tbody');
+  tbody.innerHTML = '<tr><td colspan="9" class="empty">Loading…</td></tr>';
+  try {
+    const d = await api('/api/admin/users');
+    allUsers = d.users || [];
+    renderUsers(allUsers);
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">Error: ' + esc(e.message) + '</td></tr>';
+  }
+}
+
+function renderUsers(users) {
+  const tbody = document.getElementById('users-tbody');
+  if (!users.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No users found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = users.map(function(u) {
+    const typeClass = u.user_type === 'student' ? 'b-student' : u.user_type === 'school' ? 'b-school' : 'b-passedOut';
+    const levelClass = u.level === 'advanced' ? 'b-advanced' : u.level === 'basic' ? 'b-basic' : 'b-none';
+    const levelText = u.level || 'None';
+    const tests = u.assessment_count || 0;
+    const safeName = esc(u.name).replace(/'/g, '&#39;');
+    return '<tr>' +
+      '<td style="font-family:\'JetBrains Mono\',monospace;font-size:.75rem;color:var(--muted)">#' + u.id + '</td>' +
+      '<td style="font-weight:500">' + esc(u.name) + '</td>' +
+      '<td style="color:var(--muted);font-size:.78rem">' + esc(u.email) + '</td>' +
+      '<td><span class="badge ' + typeClass + '">' + esc(u.user_type) + '</span></td>' +
+      '<td style="color:var(--muted);font-size:.78rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(u.skills || '') + '">' + esc(u.skills || '—') + '</td>' +
+      '<td><span class="badge ' + levelClass + '">' + esc(levelText) + '</span></td>' +
+      '<td style="font-family:\'JetBrains Mono\',monospace;font-size:.78rem;color:var(--muted)">' + tests + '</td>' +
+      '<td style="color:var(--muted);font-size:.78rem">' + fmtDate(u.created_at) + '</td>' +
+      '<td>' +
+        '<button class="btn-sm btn-view" onclick="viewUser(' + u.id + ')">View</button>' +
+        '<button class="btn-sm btn-rst" onclick="resetUser(' + u.id + ',\'' + safeName + '\')">Reset</button>' +
+        '<button class="btn-sm btn-del" onclick="deleteUser(' + u.id + ',\'' + safeName + '\')">Delete</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function filterUsers() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  if (!q) { renderUsers(allUsers); return; }
+  renderUsers(allUsers.filter(function(u) {
+    return (u.name || '').toLowerCase().includes(q) ||
+           (u.email || '').toLowerCase().includes(q) ||
+           (u.skills || '').toLowerCase().includes(q) ||
+           (u.user_type || '').toLowerCase().includes(q);
+  }));
+}
+
+// ── USER DETAIL MODAL ─────────────────────────────────────────────────────────
+async function viewUser(uid) {
+  document.getElementById('modal-name').textContent = 'Loading…';
+  document.getElementById('modal-body').innerHTML = '<div class="empty">Loading…</div>';
+  document.getElementById('userModal').classList.add('active');
+  try {
+    const d = await api('/api/admin/users/' + uid);
+    const u = d.user;
+    document.getElementById('modal-name').textContent = u.name;
+
+    const fields = [
+      ['ID', '#' + u.id],
+      ['Email', esc(u.email)],
+      ['Phone', esc(u.phone || '—')],
+      ['Type', esc(u.user_type)],
+      ['College', esc(u.college || '—')],
+      ['School', esc(u.school || '—')],
+      ['Qualification', esc(u.qualification || '—')],
+      ['Experience', esc(u.experience || '—')],
+      ['Skills', esc(u.skills || '—')],
+      ['Interests', esc(u.interests || '—')],
+      ['GitHub', u.github ? '<a href="' + esc(u.github) + '" target="_blank" style="color:var(--accent)">' + esc(u.github) + '</a>' : '—'],
+      ['LinkedIn', u.linkedin ? '<a href="' + esc(u.linkedin) + '" target="_blank" style="color:var(--accent)">' + esc(u.linkedin) + '</a>' : '—'],
+      ['Joined', fmtDateTime(u.created_at)],
+    ];
+
+    const detailGrid = fields.map(function(f) {
+      return '<div class="detail-item"><div class="detail-key">' + f[0] + '</div><div class="detail-val">' + f[1] + '</div></div>';
+    }).join('');
+
+    let assessHtml = '<div class="empty" style="padding:1rem">No assessments yet.</div>';
+    if (d.assessments && d.assessments.length) {
+      assessHtml = d.assessments.map(function(a) {
+        const pct = a.total ? Math.round((a.score / a.total) * 100) : 0;
+        const col = a.type === 'screening' ? 'var(--accent)' : 'var(--green)';
+        const lvlClass = a.level === 'advanced' ? 'b-advanced' : 'b-basic';
+        return '<div class="assess-row">' +
+          '<span style="text-transform:capitalize;font-weight:500">' + esc(a.type) + '</span>' +
+          '<span style="font-family:\'JetBrains Mono\',monospace;color:' + col + '">' + a.score + '/' + a.total + ' (' + pct + '%)</span>' +
+          '<span class="badge ' + lvlClass + '">' + esc(a.level || '—') + '</span>' +
+          '<span style="color:var(--muted);font-size:.75rem">' + fmtDate(a.taken_at) + '</span>' +
+        '</div>';
+      }).join('');
+    }
+
+    const roadmapLine = d.roadmap
+      ? '<span class="badge b-advanced">' + esc(d.roadmap.level) + '</span> &nbsp; Generated ' + fmtDate(d.roadmap.created_at)
+      : '<span style="color:var(--muted)">No roadmap generated</span>';
+
+    const resumeLine = d.resume
+      ? 'Generated ' + fmtDate(d.resume.created_at)
+      : '<span style="color:var(--muted)">No resume generated</span>';
+
+    const safeName = esc(u.name).replace(/'/g, '&#39;');
+
+    document.getElementById('modal-body').innerHTML =
+      '<div class="detail-grid">' + detailGrid + '</div>' +
+      '<div style="font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem">Assessments</div>' +
+      '<div style="margin-bottom:1.5rem">' + assessHtml + '</div>' +
+      '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem">' +
+        '<div style="flex:1;min-width:180px;background:var(--bg3);border-radius:8px;padding:.75rem">' +
+          '<div class="detail-key">Roadmap</div>' +
+          '<div style="font-size:.85rem;margin-top:4px">' + roadmapLine + '</div>' +
+        '</div>' +
+        '<div style="flex:1;min-width:180px;background:var(--bg3);border-radius:8px;padding:.75rem">' +
+          '<div class="detail-key">Resume</div>' +
+          '<div style="font-size:.85rem;margin-top:4px">' + resumeLine + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:.75rem">' +
+        '<button class="btn-sm btn-rst" style="padding:8px 16px;font-size:.82rem" onclick="resetUser(' + u.id + ',\'' + safeName + '\');closeModal()">Reset Data</button>' +
+        '<button class="btn-sm btn-del" style="padding:8px 16px;font-size:.82rem" onclick="deleteUser(' + u.id + ',\'' + safeName + '\');closeModal()">Delete User</button>' +
+      '</div>';
+  } catch (e) {
+    document.getElementById('modal-body').innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>';
+  }
+}
+
+function closeModal() {
+  document.getElementById('userModal').classList.remove('active');
+}
+
+// ── DELETE / RESET ────────────────────────────────────────────────────────────
+async function deleteUser(uid, name) {
+  if (!confirm('Delete user "' + name + '" and all their data? This cannot be undone.')) return;
+  try {
+    await api('/api/admin/users/' + uid, 'DELETE');
+    toast('User "' + name + '" deleted.', 'ok');
+    loadUsers();
+  } catch (e) {
+    toast('Delete failed: ' + e.message, 'err');
+  }
+}
+
+async function resetUser(uid, name) {
+  if (!confirm('Reset all assessment, roadmap, and resume data for "' + name + '"?')) return;
+  try {
+    await api('/api/admin/users/' + uid + '/reset', 'POST');
+    toast('Data reset for "' + name + '".', 'ok');
+    loadUsers();
+  } catch (e) {
+    toast('Reset failed: ' + e.message, 'err');
+  }
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+async function doExport() {
+  try {
+    const data = await api('/api/admin/export');
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'careerpath-export-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Export downloaded.', 'ok');
+  } catch (e) {
+    toast('Export failed: ' + e.message, 'err');
+  }
+}
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+function applyTheme(mode) {
+  const isLight = mode === 'light';
+  document.body.classList.toggle('light', isLight);
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '☀️' : '🌙';
+  localStorage.setItem('cp-theme', mode);
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.contains('light');
+  applyTheme(isLight ? 'dark' : 'light');
+}
+
+// Restore saved theme on load
+(function() {
+  const saved = localStorage.getItem('cp-theme');
+  if (saved === 'light') applyTheme('light');
+})();
+
+// ── MODAL CLOSE ON OVERLAY CLICK ─────────────────────────────────────────────
+document.getElementById('userModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,2775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareerPath AI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--card:#141c2e;
+    --border:rgba(99,179,237,0.18);--border2:rgba(99,179,237,0.35);
+    --text:#e2e8f0;--muted:#8899aa;--accent:#38bdf8;--accent2:#818cf8;
+    --green:#34d399;--amber:#fbbf24;--red:#f87171;
+    --grad1:linear-gradient(135deg,#38bdf8,#818cf8);
+    --grad2:linear-gradient(135deg,#34d399,#38bdf8);
+  }
+  /* ── LIGHT MODE ── */
+  body.light{
+    --bg:#f0f4f8;--bg2:#ffffff;--bg3:#e8edf3;--card:#ffffff;
+    --border:rgba(59,130,246,0.18);--border2:rgba(59,130,246,0.4);
+    --text:#1a202c;--muted:#64748b;--accent:#0284c7;--accent2:#6366f1;
+    --green:#059669;--amber:#d97706;--red:#dc2626;
+    --grad1:linear-gradient(135deg,#0284c7,#6366f1);
+    --grad2:linear-gradient(135deg,#059669,#0284c7);
+  }
+  body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background 0.25s,color 0.25s}
+  /* smooth transitions for themed elements */
+  .topbar,.form-card,.form-input,.option-btn,.week-card,.stat-card,.question-card,
+  .profile-modal,.profile-header,.pf-field,.pf-stat,.modal-overlay{transition:background 0.25s,border-color 0.25s,color 0.25s}
+  /* light mode: resume paper stays white */
+  body.light .resume-paper{background:#fff;color:#1a1a2e}
+  /* theme toggle button */
+  .theme-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;font-size:1rem;transition:all 0.2s;flex-shrink:0}
+  .theme-btn:hover{background:var(--border);}
+  .screen{display:none;min-height:100vh;flex-direction:column;animation:fadeIn 0.35s ease}
+  .screen.active{display:flex}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+  .logo{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:500;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .step-indicators{display:flex;gap:4px;align-items:center}
+  .step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:1.5px solid var(--border);color:var(--muted);transition:all 0.3s;cursor:default;position:relative}
+  .step-dot.active{border-color:var(--accent);color:var(--accent);background:rgba(56,189,248,0.12)}
+  .step-dot.done{border-color:var(--green);color:var(--green);background:rgba(52,211,153,0.12);cursor:pointer}
+  .step-dot.done:hover{background:rgba(52,211,153,0.22);transform:scale(1.1)}
+  #dot0{cursor:pointer}
+  #dot0:hover{background:rgba(56,189,248,0.18);transform:scale(1.1)}
+  .step-dot-sep{width:16px;height:1.5px;background:var(--border);border-radius:2px;transition:background 0.3s}
+  .step-dot-sep.done{background:var(--green)}
+  /* nav labels shown on wider screens */
+  .nav-label{display:none;font-size:0.72rem;font-weight:500;white-space:nowrap}
+  @media(min-width:700px){
+    .step-dot{width:auto;min-width:28px;padding:0 10px;border-radius:20px;gap:5px}
+    .nav-label{display:inline}
+    .step-dot-sep{width:10px}
+  }
+  .main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:2.5rem 1.5rem}
+  .container{width:100%;max-width:680px}
+  .form-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.5rem}
+  .form-title{font-size:1.5rem;font-weight:700;margin-bottom:0.35rem;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .form-sub{font-size:0.85rem;color:var(--muted);margin-bottom:1.75rem}
+  .form-group{margin-bottom:1.25rem}
+  .form-label{display:block;font-size:0.78rem;font-weight:500;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.06em}
+  .form-input{width:100%;padding:0.65rem 0.9rem;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Sora',sans-serif;font-size:0.875rem;transition:border 0.2s}
+  .form-input:focus{outline:none;border-color:var(--accent)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  .type-toggle{display:flex;gap:8px;margin-bottom:1.5rem}
+  .type-btn{flex:1;padding:0.65rem;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--muted);font-family:'Sora',sans-serif;font-size:0.82rem;cursor:pointer;transition:all 0.2s}
+  .type-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(56,189,248,0.1)}
+  .btn{width:100%;padding:0.8rem;border-radius:10px;border:none;cursor:pointer;font-family:'Sora',sans-serif;font-size:0.9rem;font-weight:600;transition:all 0.2s}
+  .btn-primary{background:var(--grad1);color:#0a0e1a}
+  .btn-primary:hover{opacity:0.88;transform:translateY(-1px)}
+  .btn-primary:disabled{opacity:0.45;cursor:not-allowed;transform:none}
+  .btn-outline{background:transparent;border:1px solid var(--border2);color:var(--accent)}
+  .btn-green{background:var(--grad2);color:#0a0e1a}
+  .alert{padding:0.75rem 1rem;border-radius:8px;font-size:0.82rem;margin-bottom:1rem}
+  .alert-error{background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);color:#fca5a5}
+  .alert-info{background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.25);color:var(--accent)}
+  .alert-success{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:var(--green)}
+  .ai-loading{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:3rem}
+  .pulse-ring{width:60px;height:60px;border-radius:50%;border:2px solid transparent;border-top-color:var(--accent);animation:spin 1s linear infinite;position:relative}
+  .pulse-ring::before{content:'';position:absolute;inset:4px;border-radius:50%;border:2px solid transparent;border-top-color:var(--accent2);animation:spin 1.5s linear infinite reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .progress-bar{height:4px;background:var(--bg3);border-radius:2px;margin-bottom:2rem;overflow:hidden}
+  .progress-fill{height:100%;background:var(--grad1);border-radius:2px;transition:width 0.4s ease}
+  .question-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+  .question-tag{font-size:0.7rem;font-weight:600;color:var(--accent2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.75rem}
+  .question-text{font-size:1rem;font-weight:500;line-height:1.6}
+  .options-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem}
+  .option-btn{padding:0.75rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Sora',sans-serif;font-size:0.875rem;cursor:pointer;transition:all 0.2s;text-align:left;display:flex;align-items:center;gap:10px}
+  .option-btn:hover{border-color:var(--accent2);background:rgba(129,140,248,0.08)}
+  .option-btn.correct{border-color:var(--green);background:rgba(52,211,153,0.1)}
+  .option-btn.wrong{border-color:var(--red);background:rgba(248,113,113,0.1)}
+  .option-label{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--muted);min-width:20px}
+  .week-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;cursor:pointer}
+  .week-card:hover{border-color:var(--border2)}
+  .week-card.expanded{border-color:var(--accent2)}
+  .week-header{display:flex;justify-content:space-between;align-items:center}
+  .week-number{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--accent)}
+  .week-title{font-size:0.95rem;font-weight:600;margin-top:2px}
+  .week-chevron{color:var(--muted);transition:transform 0.2s}
+  .week-card.expanded .week-chevron{transform:rotate(180deg)}
+  .week-body{display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+  .week-card.expanded .week-body{display:block}
+
+  /* ── ROADMAP TRACKER ── */
+  .rm-overall{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:none}
+  .rm-overall.visible{display:block}
+  .rm-overall-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;flex-wrap:wrap;gap:8px}
+  .rm-overall-label{font-size:0.82rem;font-weight:600}
+  .rm-overall-pct{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--accent)}
+  .rm-overall-bar{height:8px;background:var(--bg2);border-radius:4px;overflow:hidden}
+  .rm-overall-fill{height:100%;background:var(--grad2);border-radius:4px;transition:width 0.4s ease}
+  .rm-overall-complete{font-size:0.8rem;color:var(--green);font-weight:600;margin-top:0.5rem;display:none}
+  .rm-overall-complete.visible{display:block}
+  .btn-reset-rm{padding:3px 10px;border-radius:6px;border:1px solid rgba(248,113,113,0.35);background:transparent;color:var(--red);font-family:'Sora',sans-serif;font-size:0.72rem;font-weight:500;cursor:pointer}
+  .btn-reset-rm:hover{background:rgba(248,113,113,0.08)}
+  .week-progress{display:flex;align-items:center;gap:8px;margin-top:4px}
+  .week-progress-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;max-width:100px}
+  .week-progress-fill{height:100%;background:var(--grad2);border-radius:2px;transition:width 0.3s ease}
+  .week-progress-label{font-size:0.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+  .week-complete-badge{font-size:0.65rem;font-weight:600;color:var(--green);background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.3);padding:1px 7px;border-radius:10px}
+  .topic-item{display:flex;gap:10px;padding:0.6rem 0;border-bottom:1px solid var(--border);align-items:flex-start}
+  .topic-checkbox{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);background:var(--bg3);cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+  .topic-checkbox.checked{background:var(--green);border-color:var(--green)}
+  .topic-checkbox.checked::after{content:'✓';color:#0a0e1a;font-size:0.65rem;font-weight:700}
+  .topic-content.done .topic-name{text-decoration:line-through;color:var(--muted)}
+  .topic-content.done .topic-meta{opacity:0.5}
+  .topic-item{display:flex;gap:10px;padding:0.6rem 0;border-bottom:1px solid var(--border)}
+  .topic-item:last-child{border-bottom:none}
+  .topic-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);margin-top:6px;flex-shrink:0}
+  .topic-content{flex:1}
+  .topic-name{font-size:0.875rem;font-weight:500;margin-bottom:3px}
+  .topic-meta{font-size:0.75rem;color:var(--muted);margin-bottom:4px}
+  .resource-link{display:inline-flex;align-items:center;gap:4px;font-size:0.72rem;color:var(--accent);background:rgba(56,189,248,0.1);padding:2px 8px;border-radius:4px;margin:2px;border:1px solid rgba(56,189,248,0.2);text-decoration:none}
+  .resource-link:hover{background:rgba(56,189,248,0.2)}
+  .roadmap-tabs{display:flex;gap:8px;margin-bottom:2rem}
+  .tab-btn{flex:1;padding:0.6rem;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-family:'Sora',sans-serif;font-size:0.85rem;cursor:pointer;transition:all 0.2s;font-weight:500}
+  .tab-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(56,189,248,0.1)}
+  .result-circle{width:140px;height:140px;border-radius:50%;margin:0 auto 1.5rem;background:conic-gradient(var(--accent) var(--pct),var(--bg3) 0);display:flex;align-items:center;justify-content:center}
+  .result-inner{width:100px;height:100px;border-radius:50%;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .result-score{font-size:1.5rem;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
+  .result-label{font-size:0.65rem;color:var(--muted)}
+  .level-badge{display:inline-flex;align-items:center;gap:6px;padding:0.4rem 1rem;border-radius:20px;font-size:0.8rem;font-weight:600;margin-bottom:1.5rem}
+  .level-advanced{background:rgba(129,140,248,0.15);border:1px solid rgba(129,140,248,0.4);color:var(--accent2)}
+  .level-basic{background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.4);color:var(--amber)}
+  .resume-paper{background:#fff;border-radius:8px;padding:2rem;color:#1a1a2e;font-family:'Sora',sans-serif}
+  .resume-name{font-size:1.5rem;font-weight:700;color:#1a1a2e;margin-bottom:2px}
+  .resume-role{font-size:0.9rem;color:#4a5568;margin-bottom:1rem}
+  .resume-contact{display:flex;gap:12px;flex-wrap:wrap;font-size:0.75rem;color:#718096;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #e2e8f0}
+  .resume-section{margin-bottom:1.25rem}
+  .resume-section-title{font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#3b82f6;margin-bottom:0.6rem}
+  .resume-skill-tag{display:inline-block;background:#eff6ff;color:#1d4ed8;font-size:0.72rem;font-weight:500;padding:3px 10px;border-radius:4px;margin:2px}
+  .resume-item{margin-bottom:0.8rem}
+  .resume-item-title{font-size:0.85rem;font-weight:600;color:#1a1a2e}
+  .resume-item-sub{font-size:0.78rem;color:#718096;margin-bottom:2px}
+  .resume-item-desc{font-size:0.78rem;color:#4a5568;line-height:1.5}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+  .stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.8rem;text-align:center}
+  .stat-value{font-size:1.25rem;font-weight:700;font-family:'JetBrains Mono',monospace}
+  .stat-key{font-size:0.7rem;color:var(--muted);margin-top:2px}
+  .quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+  .quiz-counter{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--muted)}
+  select.form-input{cursor:pointer}
+  option{background:var(--bg3)}
+  .text-center{text-align:center}
+  .flex-gap{display:flex;gap:10px}
+  .explanation-box{background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:8px;padding:0.75rem;margin-top:0.75rem;font-size:0.8rem;color:#86efac;line-height:1.5}
+
+  /* ── PROFILE MODAL ── */
+  .profile-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.2s ease}
+  .profile-overlay.active{display:flex}
+  .profile-modal{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column}
+  .profile-header{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1;border-radius:20px 20px 0 0}
+  .profile-header-left{display:flex;align-items:center;gap:12px}
+  .profile-avatar{width:44px;height:44px;border-radius:50%;background:var(--grad1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#0a0e1a;flex-shrink:0}
+  .profile-header-name{font-size:1rem;font-weight:600}
+  .profile-header-type{font-size:0.75rem;color:var(--muted);margin-top:1px}
+  .profile-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;padding:4px}
+  .profile-body{padding:1.5rem;flex:1}
+  .profile-tabs{display:flex;gap:8px;margin-bottom:1.5rem}
+  .profile-tab{flex:1;padding:0.55rem;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-family:'Sora',sans-serif;font-size:0.82rem;cursor:pointer;transition:all 0.2s;font-weight:500}
+  .profile-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(56,189,248,0.1)}
+  .profile-tab-content{display:none}
+  .profile-tab-content.active{display:block}
+  .pf-row{display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;margin-bottom:0.85rem}
+  .pf-field{background:var(--bg3);border-radius:10px;padding:0.75rem 1rem}
+  .pf-label{font-size:0.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+  .pf-value{font-size:0.875rem;font-weight:500;word-break:break-all}
+  .pf-value a{color:var(--accent);text-decoration:none}
+  .pf-value a:hover{text-decoration:underline}
+  .pf-empty{color:var(--muted);font-style:italic}
+  .pf-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600}
+  .pf-badge-student{background:rgba(56,189,248,0.15);color:var(--accent)}
+  .pf-badge-school{background:rgba(251,191,36,0.15);color:var(--amber)}
+  .pf-badge-passedOut{background:rgba(52,211,153,0.15);color:var(--green)}
+  .pf-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1.25rem}
+  .pf-stat{background:var(--bg3);border-radius:10px;padding:0.85rem;text-align:center}
+  .pf-stat-val{font-size:1.3rem;font-weight:700;font-family:'JetBrains Mono',monospace}
+  .pf-stat-key{font-size:0.68rem;color:var(--muted);margin-top:3px}
+  .pf-assess-item{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.82rem}
+  .pf-assess-item:last-child{border-bottom:none}
+  .pf-section-title{font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;margin-top:1.25rem}
+  .pf-section-title:first-child{margin-top:0}
+  .pf-edit-actions{display:flex;gap:0.75rem;margin-top:1.25rem}
+  .btn-save{flex:1;padding:0.7rem;border-radius:10px;border:none;background:var(--grad1);color:#0a0e1a;font-family:'Sora',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer}
+  .btn-save:hover{opacity:0.88}
+  .btn-save:disabled{opacity:0.45;cursor:not-allowed}
+  .btn-cancel-edit{flex:1;padding:0.7rem;border-radius:10px;border:1px solid var(--border2);background:transparent;color:var(--accent);font-family:'Sora',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer}
+  .pf-alert{padding:0.65rem 1rem;border-radius:8px;font-size:0.82rem;margin-bottom:1rem;display:none}
+  .pf-alert-ok{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:var(--green)}
+  .pf-alert-err{background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);color:#fca5a5}
+  .profile-btn{display:none;align-items:center;gap:6px;padding:0.4rem 0.85rem;border-radius:8px;border:1px solid var(--border2);background:rgba(56,189,248,0.08);color:var(--accent);font-family:'Sora',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.2s}
+  .profile-btn:hover{background:rgba(56,189,248,0.15)}
+  .profile-btn.visible{display:flex}
+
+  /* ── JOB RECOMMENDATIONS ── */
+  .jobs-grid{display:grid;grid-template-columns:1fr;gap:1rem}
+  @media(min-width:640px){.jobs-grid{grid-template-columns:1fr 1fr}}
+  .job-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;transition:border-color 0.2s,transform 0.2s}
+  .job-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+  .job-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .job-title{font-size:0.95rem;font-weight:700;line-height:1.3}
+  .job-category{font-size:0.65rem;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+  .jc-best{background:rgba(52,211,153,0.15);color:var(--green);border:1px solid rgba(52,211,153,0.3)}
+  .jc-strong{background:rgba(56,189,248,0.15);color:var(--accent);border:1px solid rgba(56,189,248,0.3)}
+  .jc-good{background:rgba(129,140,248,0.15);color:var(--accent2);border:1px solid rgba(129,140,248,0.3)}
+  .jc-stretch{background:rgba(251,191,36,0.15);color:var(--amber);border:1px solid rgba(251,191,36,0.3)}
+  .job-match-bar{display:flex;align-items:center;gap:10px}
+  .job-match-track{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+  .job-match-fill{height:100%;border-radius:3px;background:var(--grad2);transition:width 0.6s ease}
+  .job-match-pct{font-family:'JetBrains Mono',monospace;font-size:0.78rem;font-weight:600;color:var(--green);min-width:36px;text-align:right}
+  .job-why{font-size:0.8rem;color:var(--muted);line-height:1.55}
+  .job-meta-row{display:flex;gap:1rem;flex-wrap:wrap}
+  .job-meta-item{display:flex;align-items:center;gap:5px;font-size:0.75rem;color:var(--muted)}
+  .job-meta-item span:first-child{font-size:0.85rem}
+  .job-skills-section{display:flex;flex-direction:column;gap:6px}
+  .job-skills-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)}
+  .job-skills-row{display:flex;flex-wrap:wrap;gap:5px}
+  .skill-tag{font-size:0.7rem;font-weight:500;padding:2px 9px;border-radius:20px}
+  .skill-have{background:rgba(52,211,153,0.12);color:var(--green);border:1px solid rgba(52,211,153,0.25)}
+  .skill-gap{background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.25)}
+  .job-companies{display:flex;flex-wrap:wrap;gap:5px}
+  .company-tag{font-size:0.7rem;padding:2px 8px;border-radius:6px;background:var(--bg3);color:var(--muted);border:1px solid var(--border)}
+  .jobs-summary{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem}
+  .jobs-summary-stat{text-align:center}
+  .jobs-summary-val{font-size:1.2rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent)}
+  .jobs-summary-key{font-size:0.68rem;color:var(--muted);margin-top:2px}
+  .btn-regen-jobs{padding:0.5rem 1.1rem;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--accent);font-family:'Sora',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px}
+  .btn-regen-jobs:hover{background:rgba(56,189,248,0.08)}
+  .btn-regen-jobs:disabled{opacity:0.45;cursor:not-allowed}
+
+  /* ── FORGOT PASSWORD MODAL ── */
+  .fp-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.2s ease}
+  .fp-overlay.active{display:flex}
+  .fp-modal{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:440px;padding:2rem}
+  .fp-title{font-size:1.1rem;font-weight:700;margin-bottom:0.3rem;background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .fp-sub{font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.5}
+  .fp-token-box{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:1rem;margin:1rem 0;font-family:'JetBrains Mono',monospace;font-size:0.8rem;word-break:break-all;color:var(--accent);line-height:1.6}
+  .fp-note{font-size:0.75rem;color:var(--amber);background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);border-radius:8px;padding:0.6rem 0.85rem;margin-bottom:1rem;line-height:1.5}
+  .fp-steps{display:flex;gap:8px;margin-bottom:1.5rem}
+  .fp-step-btn{flex:1;padding:0.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-family:'Sora',sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s;font-weight:500}
+  .fp-step-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(56,189,248,0.1)}
+
+  /* ── USER DASHBOARD ── */
+  .dash-welcome{background:var(--grad1);border-radius:16px;padding:1.75rem 2rem;margin-bottom:1.5rem;color:#0a0e1a;position:relative;overflow:hidden}
+  .dash-welcome::after{content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.1)}
+  .dash-welcome-name{font-size:1.4rem;font-weight:700;margin-bottom:4px}
+  .dash-welcome-sub{font-size:0.85rem;opacity:0.8}
+  .dash-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1rem;margin-bottom:1.5rem}
+
+  /* ── DASHBOARD SIDEBAR LAYOUT ── */
+  .dash-layout{display:flex;gap:1.25rem;align-items:flex-start}
+  .dash-sidebar{width:190px;flex-shrink:0;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:0.75rem;display:flex;flex-direction:column;gap:4px;position:sticky;top:80px}
+  .dash-sidebar-title{font-size:0.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:0.4rem 0.75rem 0.25rem}
+  @media(max-width:660px){.dash-layout{flex-direction:column}.dash-sidebar{width:100%;position:static;flex-direction:row;flex-wrap:wrap;padding:0.5rem}}
+  .dash-nav-item{display:flex;align-items:center;gap:9px;padding:0.6rem 0.75rem;border-radius:8px;border:none;background:transparent;color:var(--muted);font-family:'Sora',sans-serif;font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.2s;text-align:left;width:100%}
+  .dash-nav-item:hover{background:var(--bg3);color:var(--text)}
+  .dash-nav-item.active{background:rgba(56,189,248,0.1);color:var(--accent);font-weight:600}
+  .dash-nav-icon{font-size:1rem;flex-shrink:0;width:20px;text-align:center}
+  .dash-nav-badge{margin-left:auto;font-size:0.6rem;font-weight:700;padding:1px 6px;border-radius:10px;background:var(--green);color:#0a0e1a;flex-shrink:0}
+  .dash-nav-badge.pending{background:var(--amber);color:#0a0e1a}
+  .dash-nav-badge.locked{background:var(--bg3);color:var(--muted);border:1px solid var(--border)}
+  .dash-nav-sep{height:1px;background:var(--border);margin:4px 0}
+  .dash-main-content{flex:1;min-width:0}
+  .dash-section{display:none}
+  .dash-section.active{display:block}
+  .dash-stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.1rem;text-align:center;position:relative;overflow:hidden}
+  .dash-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+  .ds-blue::before{background:var(--grad1)}
+  .ds-green::before{background:var(--grad2)}
+  .ds-purple::before{background:var(--accent2)}
+  .ds-amber::before{background:var(--amber)}
+  .dash-stat-icon{font-size:1.4rem;margin-bottom:6px}
+  .dash-stat-val{font-size:1.5rem;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;color:var(--accent)}
+  .dash-stat-key{font-size:0.7rem;color:var(--muted);margin-top:4px}
+  .dash-modules{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+  @media(max-width:560px){.dash-modules{grid-template-columns:1fr}}
+  .dash-module{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;display:flex;flex-direction:column;gap:10px;transition:all 0.2s;cursor:pointer}
+  .dash-module:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.12)}
+  .dash-module-head{display:flex;align-items:center;gap:10px}
+  .dash-module-icon{font-size:1.4rem}
+  .dash-module-title{font-size:0.95rem;font-weight:600}
+  .dash-module-status{font-size:0.72rem;font-weight:600;padding:2px 10px;border-radius:20px;margin-left:auto}
+  .ds-done{background:rgba(52,211,153,0.15);color:var(--green)}
+  .ds-pending{background:rgba(251,191,36,0.15);color:var(--amber)}
+  .ds-locked{background:rgba(136,153,170,0.15);color:var(--muted)}
+  .dash-module-desc{font-size:0.8rem;color:var(--muted);line-height:1.5}
+  .dash-module-meta{font-size:0.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .dash-module-btn{padding:0.55rem 1rem;border-radius:8px;border:none;font-family:'Sora',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;text-align:center;margin-top:auto}
+  .dmb-primary{background:var(--grad1);color:#0a0e1a}
+  .dmb-primary:hover{opacity:0.88}
+  .dmb-outline{background:transparent;border:1px solid var(--border2);color:var(--accent)}
+  .dmb-outline:hover{background:rgba(56,189,248,0.08)}
+  .dmb-disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed}
+  .dash-recent{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .dash-recent-head{padding:1rem 1.25rem;border-bottom:1px solid var(--border);font-size:0.9rem;font-weight:600}
+  .dash-recent-item{display:flex;justify-content:space-between;align-items:center;padding:0.7rem 1.25rem;border-bottom:1px solid rgba(99,179,237,0.06);font-size:0.82rem}
+  .dash-recent-item:last-child{border-bottom:none}
+  .dash-empty{text-align:center;padding:2rem;color:var(--muted);font-size:0.85rem}
+
+  /* ── BADGES ── */
+  .badges-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem}
+  .badges-title{font-size:0.9rem;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+  .badges-grid{display:flex;gap:1rem;flex-wrap:wrap}
+  .badge-item{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:72px}
+  .badge-circle{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;border:2px solid var(--border);background:var(--bg3);transition:all 0.3s;position:relative}
+  .badge-circle.earned{border-color:var(--green);background:rgba(52,211,153,0.12);box-shadow:0 0 16px rgba(52,211,153,0.25)}
+  .badge-circle.earned::after{content:'✓';position:absolute;bottom:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--green);color:#0a0e1a;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
+  .badge-label{font-size:0.68rem;font-weight:600;color:var(--muted);text-align:center;line-height:1.3}
+  .badge-label.earned{color:var(--green)}
+
+  /* ── CERTIFICATE ── */
+  .cert-banner{background:linear-gradient(135deg,rgba(52,211,153,0.12),rgba(56,189,248,0.12));border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:none;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+  .cert-banner.visible{display:flex}
+  .cert-banner-left{display:flex;align-items:center;gap:12px}
+  .cert-banner-icon{font-size:2rem}
+  .cert-banner-title{font-size:0.95rem;font-weight:600;color:var(--green)}
+  .cert-banner-sub{font-size:0.78rem;color:var(--muted);margin-top:2px}
+  .cert-btn{padding:0.6rem 1.4rem;border-radius:10px;border:none;background:var(--grad2);color:#0a0e1a;font-family:'Sora',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+  .cert-btn:hover{opacity:0.88;transform:translateY(-1px)}
+
+  /* ── LANDING PAGE ── */
+  .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1.5rem;text-align:center;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(56,189,248,0.12),transparent),radial-gradient(ellipse 60% 50% at 80% 80%,rgba(129,140,248,0.1),transparent);pointer-events:none}
+  .hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;border:1px solid var(--border2);background:rgba(56,189,248,0.08);color:var(--accent);font-size:0.75rem;font-weight:600;margin-bottom:1.5rem;letter-spacing:0.04em}
+  .hero-title{font-size:clamp(2rem,6vw,3.5rem);font-weight:700;line-height:1.15;margin-bottom:1rem;max-width:700px}
+  .hero-title span{background:var(--grad1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hero-sub{font-size:1rem;color:var(--muted);max-width:520px;line-height:1.7;margin-bottom:2.5rem}
+  .hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:4rem}
+  .hero-btn-primary{padding:0.85rem 2rem;border-radius:12px;border:none;background:var(--grad1);color:#0a0e1a;font-family:'Sora',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s}
+  .hero-btn-primary:hover{opacity:0.88;transform:translateY(-2px)}
+  .hero-btn-outline{padding:0.85rem 2rem;border-radius:12px;border:1px solid var(--border2);background:transparent;color:var(--accent);font-family:'Sora',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s}
+  .hero-btn-outline:hover{background:rgba(56,189,248,0.08);transform:translateY(-2px)}
+  .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;width:100%;max-width:860px;margin-bottom:3rem}
+  .feature-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;text-align:left;transition:border-color 0.2s,transform 0.2s}
+  .feature-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+  .feature-icon{font-size:1.8rem;margin-bottom:0.75rem}
+  .feature-title{font-size:0.95rem;font-weight:600;margin-bottom:0.4rem}
+  .feature-desc{font-size:0.8rem;color:var(--muted);line-height:1.6}
+  .steps-row{display:flex;align-items:flex-start;gap:0;width:100%;max-width:760px;margin-bottom:3rem;flex-wrap:wrap;justify-content:center}
+  .step-item{display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;min-width:120px;padding:0 0.5rem}
+  .step-num{width:40px;height:40px;border-radius:50%;background:var(--grad1);color:#0a0e1a;font-weight:700;font-size:0.9rem;display:flex;align-items:center;justify-content:center;margin-bottom:0.6rem;flex-shrink:0}
+  .step-label{font-size:0.78rem;font-weight:600;margin-bottom:3px}
+  .step-desc{font-size:0.72rem;color:var(--muted)}
+  .step-arrow{font-size:1.2rem;color:var(--border2);margin-top:12px;flex-shrink:0}
+  @media(max-width:560px){.step-arrow{display:none}.steps-row{gap:1rem}}
+  .hero-footer{font-size:0.78rem;color:var(--muted)}
+  .hero-footer span{color:var(--accent);font-weight:500}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">&#x2022; CareerPath AI</div>
+  <div style="display:flex;align-items:center;gap:12px">
+  <div class="step-indicators" id="stepNav">
+    <div class="step-dot active" id="dot0" onclick="navTo(0)" title="Dashboard">🏠<span class="nav-label">Overview</span></div>
+    <div class="step-dot-sep" id="sep0"></div>
+    <div class="step-dot" id="dot1" onclick="navTo(1)" title="Screening Test">1<span class="nav-label">Screening</span></div>
+    <div class="step-dot-sep" id="sep1"></div>
+    <div class="step-dot" id="dot2" onclick="navTo(2)" title="Roadmap">2<span class="nav-label">Roadmap</span></div>
+    <div class="step-dot-sep" id="sep2"></div>
+    <div class="step-dot" id="dot3" onclick="navTo(3)" title="Progress Test">3<span class="nav-label">Progress</span></div>
+    <div class="step-dot-sep" id="sep3"></div>
+    <div class="step-dot" id="dot4" onclick="navTo(4)" title="Resume">4<span class="nav-label">Resume</span></div>
+  </div>
+  <button id="profileBtn" class="profile-btn" onclick="openProfile()">👤 Profile</button>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
+  <button id="logoutBtn" onclick="doLogout()" style="display:none;padding:0.4rem 0.9rem;border-radius:8px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.1);color:#f87171;font-family:'Sora',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer">Sign Out</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 0: LANDING / HOME ══ -->
+<div class="screen active" id="s0">
+<div class="hero">
+
+  <div class="hero-badge">✦ AI-Powered Career Guidance</div>
+
+  <h1 class="hero-title">
+    Your Personalised<br><span>Career Path</span> Starts Here
+  </h1>
+  <p class="hero-sub">
+    CareerPath AI analyses your skills and interests to generate custom assessments,
+    learning roadmaps, and a professional resume — all powered by AI.
+  </p>
+
+  <div class="hero-btns">
+    <button class="hero-btn-primary" onclick="goTo(1)">Get Started Free →</button>
+    <button class="hero-btn-outline" onclick="goTo(2)">Sign In</button>
+  </div>
+
+  <!-- Feature cards -->
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📝</div>
+      <div class="feature-title">Screening Assessment</div>
+      <div class="feature-desc">20 AI-generated MCQ questions tailored to your skills and interests to determine your learning level.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🗺️</div>
+      <div class="feature-title">Learning Roadmap</div>
+      <div class="feature-desc">Personalised 4-week and 8-week study plans built by AI based on your screening result.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <div class="feature-title">Progress Test</div>
+      <div class="feature-desc">50 questions to evaluate how well you've absorbed your roadmap content and track growth.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📄</div>
+      <div class="feature-title">AI Resume Generator</div>
+      <div class="feature-desc">Professional ATS-friendly resume built from your profile, roadmap, and assessment scores.</div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div style="font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1.25rem">How It Works</div>
+  <div class="steps-row">
+    <div class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-label">Register</div>
+      <div class="step-desc">Create your profile with skills &amp; interests</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-label">Screening</div>
+      <div class="step-desc">Take a 20-question AI assessment</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-label">Roadmap</div>
+      <div class="step-desc">Get your personalised study plan</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-label">Progress</div>
+      <div class="step-desc">Test your learning with 50 questions</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-label">Resume</div>
+      <div class="step-desc">Download your AI-generated resume</div>
+    </div>
+  </div>
+
+  <div class="hero-footer">
+    Powered by <span>Groq</span> · <span>Gemini</span> · <span>OpenRouter</span> &nbsp;|&nbsp; Free to use
+  </div>
+
+</div>
+</div>
+
+<!-- ══ SCREEN 1: REGISTER ══ -->
+<div class="screen" id="s1">
+<div class="main"><div class="container">
+  <div class="form-card">
+    <div class="form-title">Create Your Account</div>
+    <div class="form-sub">AI-powered career guidance personalised for you</div>
+
+    <div class="type-toggle">
+      <button class="type-btn active" onclick="setType('student')" id="btnStudent">🎓 Student</button>
+      <button class="type-btn" onclick="setType('school')" id="btnSchool">🏫 School</button>
+      <button class="type-btn" onclick="setType('passedOut')" id="btnPassed">💼 Passed Out</button>
+    </div>
+
+    <div id="regError" class="alert alert-error" style="display:none"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="rName" placeholder="Enter Your Name"/></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="rPhone" placeholder="Enter Your Phone Number"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="rEmail" type="email" placeholder="you@email.com"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="rPass" type="password" placeholder="Min 8 chars"/></div>
+    </div>
+
+    <!-- College Student -->
+    <div id="fCollege">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">College</label><input class="form-input" id="rCollege" placeholder="Enter Your College Name"/></div>
+        <div class="form-group"><label class="form-label">Qualification</label><input class="form-input" id="rQual" placeholder="Enter Your Qualification"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Skills</label><input class="form-input" id="rSkills" placeholder="Enter Your skill"/></div>
+        <div class="form-group"><label class="form-label">Interests</label><input class="form-input" id="rInterests" placeholder="Enter Your Interests"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">GitHub</label><input class="form-input" id="rGithub" placeholder="https://github.com/..."/></div>
+        <div class="form-group"><label class="form-label">LinkedIn</label><input class="form-input" id="rLinkedin" placeholder="https://linkedin.com/..."/></div>
+      </div>
+    </div>
+    <!-- School -->
+    <div id="fSchool" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">School Name</label><input class="form-input" id="rSchool" placeholder="Enter Your School Name"/></div>
+        <div class="form-group"><label class="form-label">Qualification</label><input class="form-input" id="rSchoolQual" placeholder="11th Grade"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Skills</label><input class="form-input" id="rSchoolSkills" placeholder="Enter Your skill"/></div>
+        <div class="form-group"><label class="form-label">Interests</label><input class="form-input" id="rSchoolInterests" placeholder="Enter Your Interests"/></div>
+      </div>
+    </div>
+    <!-- Passed Out -->
+    <div id="fPassed" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">College</label><input class="form-input" id="rPCollege" placeholder="Enter Your College Name"/></div>
+        <div class="form-group"><label class="form-label">Qualification</label><input class="form-input" id="rPQual" placeholder="Enter Your Qualification"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Experience</label><input class="form-input" id="rExp" placeholder="Enter You Experience"/></div>
+        <div class="form-group"><label class="form-label">Skills</label><input class="form-input" id="rPSkills" placeholder="Enter Your skill"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Interests</label><input class="form-input" id="rPInterests" placeholder="Enter Your Interests"/></div>
+        <div class="form-group"><label class="form-label">GitHub</label><input class="form-input" id="rPGithub" placeholder="https://github.com/..."/></div>
+      </div>
+      <div class="form-group"><label class="form-label">LinkedIn</label><input class="form-input" id="rPLinkedin" placeholder="https://linkedin.com/..."/></div>
+    </div>
+
+    <button class="btn btn-primary" id="btnRegister" onclick="doRegister()">Create Account →</button>
+    <p style="text-align:center;font-size:0.8rem;color:var(--muted);margin-top:1rem">Already registered? <span style="color:var(--accent);cursor:pointer" onclick="goTo(2)">Sign In</span></p>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 2: LOGIN ══ -->
+<div class="screen" id="s2">
+<div class="main"><div class="container" style="max-width:420px">
+  <div class="form-card">
+    <div class="form-title">Welcome Back</div>
+    <div class="form-sub">Sign in to continue your journey</div>
+    <div id="loginError" class="alert alert-error" style="display:none"></div>
+    <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="lEmail" type="email"/></div>
+    <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="lPass" type="password"/></div>
+    <button class="btn btn-primary" id="btnLogin" onclick="doLogin()">Sign In →</button>
+    <p style="text-align:center;font-size:0.8rem;color:var(--muted);margin-top:1rem">New? <span style="color:var(--accent);cursor:pointer" onclick="goTo(1)">Register</span> &nbsp;·&nbsp; <span style="color:var(--accent);cursor:pointer" onclick="openForgotPassword()">Forgot Password?</span></p>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 3: DASHBOARD ══ -->
+<div class="screen" id="s3">
+<div class="main"><div class="container" style="max-width:900px">
+
+  <!-- Welcome banner (always visible) -->
+  <div class="dash-welcome">
+    <div class="dash-welcome-name" id="dWelcomeName">Welcome back!</div>
+    <div class="dash-welcome-sub" id="dWelcomeSub">Here's your CareerPath AI progress overview</div>
+  </div>
+
+  <!-- Stats row (always visible) -->
+  <div class="dash-stats">
+    <div class="dash-stat ds-blue"><div class="dash-stat-icon">📝</div><div class="dash-stat-val" id="dStatScreening">—</div><div class="dash-stat-key">Screening Tests</div></div>
+    <div class="dash-stat ds-green"><div class="dash-stat-icon">🎯</div><div class="dash-stat-val" id="dStatProgress">—</div><div class="dash-stat-key">Progress Tests</div></div>
+    <div class="dash-stat ds-purple"><div class="dash-stat-icon">⭐</div><div class="dash-stat-val" id="dStatLevel">—</div><div class="dash-stat-key">Current Level</div></div>
+    <div class="dash-stat ds-amber"><div class="dash-stat-icon">📄</div><div class="dash-stat-val" id="dStatResume">—</div><div class="dash-stat-key">Resume</div></div>
+  </div>
+
+  <!-- Sidebar + Main layout -->
+  <div class="dash-layout">
+
+    <!-- Sidebar navigation -->
+    <div class="dash-sidebar">
+      <div class="dash-sidebar-title">Navigation</div>
+      <button class="dash-nav-item active" id="dnav-overview" onclick="switchDashTab('overview',this)">
+        <span class="dash-nav-icon">🏠</span> Overview
+      </button>
+      <button class="dash-nav-item" id="dnav-screening" onclick="switchDashTab('screening',this)">
+        <span class="dash-nav-icon">📝</span> Screening
+        <span class="dash-nav-badge pending" id="dnav-badge1">—</span>
+      </button>
+      <button class="dash-nav-item" id="dnav-roadmap" onclick="switchDashTab('roadmap',this)">
+        <span class="dash-nav-icon">🗺️</span> Roadmap
+        <span class="dash-nav-badge locked" id="dnav-badge2">—</span>
+      </button>
+      <button class="dash-nav-item" id="dnav-progress" onclick="switchDashTab('progress',this)">
+        <span class="dash-nav-icon">🎯</span> Progress
+        <span class="dash-nav-badge locked" id="dnav-badge3">—</span>
+      </button>
+      <button class="dash-nav-item" id="dnav-resume" onclick="switchDashTab('resume',this)">
+        <span class="dash-nav-icon">📄</span> Resume
+        <span class="dash-nav-badge locked" id="dnav-badge4">—</span>
+      </button>
+      <div class="dash-nav-sep"></div>
+      <button class="dash-nav-item" id="dnav-achievements" onclick="switchDashTab('achievements',this)">
+        <span class="dash-nav-icon">🏅</span> Achievements
+      </button>
+      <button class="dash-nav-item" id="dnav-activity" onclick="switchDashTab('activity',this)">
+        <span class="dash-nav-icon">📊</span> Activity
+      </button>
+      <button class="dash-nav-item" id="dnav-jobs" onclick="switchDashTab('jobs',this)">
+        <span class="dash-nav-icon">💼</span> Job Matches
+        <span class="dash-nav-badge" id="dnav-badge-jobs" style="display:none">New</span>
+      </button>
+    </div>
+
+    <!-- Main content area -->
+    <div class="dash-main-content">
+
+      <!-- ── OVERVIEW SECTION ── -->
+      <div class="dash-section active" id="dsec-overview">
+        <div class="dash-modules">
+          <div class="dash-module" onclick="document.getElementById('dMod1Btn').click()">
+            <div class="dash-module-head">
+              <span class="dash-module-icon">📝</span>
+              <span class="dash-module-title">Screening Test</span>
+              <span class="dash-module-status ds-pending" id="dMod1Status">Not Started</span>
+            </div>
+            <div class="dash-module-desc">20 AI-generated MCQ questions based on your skills and interests. Determines your learning level.</div>
+            <div class="dash-module-meta" id="dMod1Meta"></div>
+            <button class="dash-module-btn dmb-primary" id="dMod1Btn" onclick="event.stopPropagation();goTo(4)">Start Screening →</button>
+          </div>
+          <div class="dash-module" onclick="document.getElementById('dMod2Btn').click()">
+            <div class="dash-module-head">
+              <span class="dash-module-icon">🗺️</span>
+              <span class="dash-module-title">Learning Roadmap</span>
+              <span class="dash-module-status ds-locked" id="dMod2Status">Locked</span>
+            </div>
+            <div class="dash-module-desc">AI-generated 4-week and 8-week personalised study plans based on your screening result.</div>
+            <div class="dash-module-meta" id="dMod2Meta"></div>
+            <button class="dash-module-btn dmb-disabled" id="dMod2Btn" disabled onclick="event.stopPropagation()">Complete Screening First</button>
+          </div>
+          <div class="dash-module" onclick="document.getElementById('dMod3Btn').click()">
+            <div class="dash-module-head">
+              <span class="dash-module-icon">🎯</span>
+              <span class="dash-module-title">Progress Test</span>
+              <span class="dash-module-status ds-locked" id="dMod3Status">Locked</span>
+            </div>
+            <div class="dash-module-desc">50 questions to evaluate how well you've absorbed your roadmap content.</div>
+            <div class="dash-module-meta" id="dMod3Meta"></div>
+            <button class="dash-module-btn dmb-disabled" id="dMod3Btn" disabled onclick="event.stopPropagation()">Complete Roadmap First</button>
+          </div>
+          <div class="dash-module" onclick="document.getElementById('dMod4Btn').click()">
+            <div class="dash-module-head">
+              <span class="dash-module-icon">📄</span>
+              <span class="dash-module-title">AI Resume</span>
+              <span class="dash-module-status ds-locked" id="dMod4Status">Locked</span>
+            </div>
+            <div class="dash-module-desc">Professional ATS-friendly resume generated from your profile, roadmap, and test scores.</div>
+            <div class="dash-module-meta" id="dMod4Meta"></div>
+            <button class="dash-module-btn dmb-disabled" id="dMod4Btn" disabled onclick="event.stopPropagation()">Complete Progress Test First</button>
+          </div>
+          <div class="dash-module" onclick="switchDashTab('jobs',document.getElementById('dnav-jobs'))">
+            <div class="dash-module-head">
+              <span class="dash-module-icon">💼</span>
+              <span class="dash-module-title">Job Matches</span>
+              <span class="dash-module-status ds-pending" id="dMod5Status">Ready</span>
+            </div>
+            <div class="dash-module-desc">AI-matched job roles with skill gap analysis based on your profile and assessment results.</div>
+            <div class="dash-module-meta" id="dMod5Meta"></div>
+            <button class="dash-module-btn dmb-outline" onclick="event.stopPropagation();switchDashTab('jobs',document.getElementById('dnav-jobs'))">View Job Matches →</button>
+          </div>
+        </div>
+        <!-- Certificate banner -->
+        <div class="cert-banner" id="certBanner">
+          <div class="cert-banner-left">
+            <div class="cert-banner-icon">🏆</div>
+            <div>
+              <div class="cert-banner-title">Congratulations! You've completed CareerPath AI</div>
+              <div class="cert-banner-sub">All 4 modules done — your certificate is ready</div>
+            </div>
+          </div>
+          <button class="cert-btn" onclick="generateCertificate()">🎓 Get Certificate</button>
+        </div>
+      </div>
+
+      <!-- ── SCREENING SECTION ── -->
+      <div class="dash-section" id="dsec-screening">
+        <div class="form-card" style="margin-bottom:0">
+          <div class="form-title" style="font-size:1.1rem;margin-bottom:0.25rem">📝 Screening Test</div>
+          <div class="form-sub">20 AI-generated questions based on your skills &amp; interests</div>
+          <div id="dsec-screening-content"><div class="dash-empty">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- ── ROADMAP SECTION ── -->
+      <div class="dash-section" id="dsec-roadmap">
+        <div class="form-card" style="margin-bottom:0">
+          <div class="form-title" style="font-size:1.1rem;margin-bottom:0.25rem">🗺️ Learning Roadmap</div>
+          <div class="form-sub">Your personalised study plan</div>
+          <div id="dsec-roadmap-content"><div class="dash-empty">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- ── PROGRESS SECTION ── -->
+      <div class="dash-section" id="dsec-progress">
+        <div class="form-card" style="margin-bottom:0">
+          <div class="form-title" style="font-size:1.1rem;margin-bottom:0.25rem">🎯 Progress Test</div>
+          <div class="form-sub">50 questions to evaluate your learning</div>
+          <div id="dsec-progress-content"><div class="dash-empty">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- ── RESUME SECTION ── -->
+      <div class="dash-section" id="dsec-resume">
+        <div class="form-card" style="margin-bottom:0">
+          <div class="form-title" style="font-size:1.1rem;margin-bottom:0.25rem">📄 AI Resume</div>
+          <div class="form-sub">Your AI-generated professional resume</div>
+          <div id="dsec-resume-content"><div class="dash-empty">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- ── ACHIEVEMENTS SECTION ── -->
+      <div class="dash-section" id="dsec-achievements">
+        <div class="badges-section" style="margin-bottom:0">
+          <div class="badges-title">🏅 Achievements</div>
+          <div class="badges-grid">
+            <div class="badge-item"><div class="badge-circle" id="badge1">📝</div><div class="badge-label" id="badge1Label">Screening</div></div>
+            <div class="badge-item"><div class="badge-circle" id="badge2">🗺️</div><div class="badge-label" id="badge2Label">Roadmap</div></div>
+            <div class="badge-item"><div class="badge-circle" id="badge3">🎯</div><div class="badge-label" id="badge3Label">Progress</div></div>
+            <div class="badge-item"><div class="badge-circle" id="badge4">📄</div><div class="badge-label" id="badge4Label">Resume</div></div>
+            <div class="badge-item"><div class="badge-circle" id="badge5">🏆</div><div class="badge-label" id="badge5Label">Graduate</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACTIVITY SECTION ── -->
+      <div class="dash-section" id="dsec-activity">
+        <div class="dash-recent" style="border-radius:14px">
+          <div class="dash-recent-head">📊 Recent Activity</div>
+          <div id="dRecentList"><div class="dash-empty">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- ── JOB RECOMMENDATIONS SECTION ── -->
+      <div class="dash-section" id="dsec-jobs">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem">
+          <div>
+            <div style="font-size:1.1rem;font-weight:700;margin-bottom:2px">💼 Job Recommendations</div>
+            <div style="font-size:0.82rem;color:var(--muted)">AI-matched roles based on your skills, interests &amp; assessment level</div>
+          </div>
+          <button class="btn-regen-jobs" id="btnRegenJobs" onclick="loadJobRecommendations(true)" style="display:none">
+            ✨ Regenerate
+          </button>
+        </div>
+        <div id="jobs-content">
+          <!-- Initial state: prompt user to generate -->
+          <div id="jobs-idle" style="text-align:center;padding:3rem 1rem">
+            <div style="font-size:3rem;margin-bottom:1rem">💼</div>
+            <div style="font-size:1rem;font-weight:600;margin-bottom:0.5rem">Find Your Best-Fit Roles</div>
+            <div style="font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem;max-width:380px;margin-left:auto;margin-right:auto;line-height:1.6">AI will analyse your skills, interests and assessment scores to recommend 6 job roles with skill gap analysis.</div>
+            <button class="btn btn-primary" style="max-width:260px" onclick="loadJobRecommendations(true)">✨ Generate Job Matches →</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end dash-main-content -->
+  </div><!-- end dash-layout -->
+
+</div></div>
+</div>
+
+<!-- ══ SCREEN 4: SCREENING TEST ══ -->
+<div class="screen" id="s4">
+<div class="main"><div class="container">
+  <div id="testIntro" class="form-card">
+    <div class="form-title">Screening Assessment</div>
+    <div class="form-sub">20 AI-generated questions based on your skills &amp; interests</div>
+    <div class="alert alert-info">AI generates questions in the cloud. Score ≥ 15 → Advanced roadmap &nbsp;|&nbsp; Score &lt; 15 → Basic roadmap</div>
+    <br/>
+    <button class="btn btn-primary" onclick="startScreening()">Generate &amp; Start Test →</button>
+  </div>
+  <div id="testLoading" style="display:none" class="form-card">
+    <div class="ai-loading">
+      <div class="pulse-ring"></div>
+      <div style="font-size:1rem;font-weight:600">AI is generating your questions…</div>
+      <div style="font-size:0.82rem;color:var(--muted)" id="loadTxt">Analysing your profile</div>
+    </div>
+  </div>
+  <div id="testQuiz" style="display:none">
+    <div class="quiz-header">
+      <div><div style="font-size:1rem;font-weight:600">Screening Test</div><div class="quiz-counter" id="qCount">Q 1/20</div></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--accent)" id="qScore">Score: 0</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="qProg" style="width:5%"></div></div>
+    <div class="question-card">
+      <div class="question-tag" id="qTag">Topic</div>
+      <div class="question-text" id="qText">Loading…</div>
+    </div>
+    <div class="options-grid" id="qOpts"></div>
+    <div id="qExpl" class="explanation-box" style="display:none;margin-bottom:1.5rem"></div>
+    <button class="btn btn-primary" id="qNext" style="display:none" onclick="nextQ()">Next →</button>
+  </div>
+  <div id="testResult" style="display:none" class="form-card text-center">
+    <div class="form-title" style="margin-bottom:0.25rem">Assessment Complete!</div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem">Here's your performance</div>
+    <div class="result-circle" id="rCircle"><div class="result-inner"><div class="result-score" id="rScore">0/20</div><div class="result-label">Score</div></div></div>
+    <div id="rBadge" class="level-badge level-advanced" style="margin:0 auto 1.5rem"></div>
+    <div id="rMsg" style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.6"></div>
+    <button class="btn btn-primary" onclick="goToRoadmap()">Generate My Roadmap →</button>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 5: ROADMAP ══ -->
+<div class="screen" id="s5">
+<div class="main"><div class="container">
+  <div class="form-card">
+    <div class="form-title" id="rmTitle">Your Learning Roadmap</div>
+    <div id="rmSub" class="form-sub">AI-generate roadmap</div>
+    <div id="rmLoading" class="ai-loading">
+      <div class="pulse-ring"></div>
+      <div style="font-size:1rem;font-weight:600">Building your roadmap…</div>
+      <div style="font-size:0.82rem;color:var(--muted)">AI is crafting your weekly plan</div>
+    </div>
+    <div id="rmContent" style="display:none">
+      <div class="roadmap-tabs">
+        <button class="tab-btn active" onclick="switchTab('4')" id="tab4">📅 4-Week Plan</button>
+        <button class="tab-btn" onclick="switchTab('8')" id="tab8">📅 8-Week Plan</button>
+      </div>
+
+      <!-- Overall progress bar (4-week) -->
+      <div class="rm-overall" id="rmOverall4">
+        <div class="rm-overall-head">
+          <span class="rm-overall-label">📊 Overall Progress — 4-Week Plan</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="rm-overall-pct" id="rmPct4">0%</span>
+            <button class="btn-reset-rm" onclick="resetProgress('4')">Reset</button>
+          </div>
+        </div>
+        <div class="rm-overall-bar"><div class="rm-overall-fill" id="rmFill4" style="width:0%"></div></div>
+        <div class="rm-overall-complete" id="rmComplete4">🎉 All topics completed! You're ready for the Progress Test.</div>
+      </div>
+
+      <!-- Overall progress bar (8-week) -->
+      <div class="rm-overall" id="rmOverall8">
+        <div class="rm-overall-head">
+          <span class="rm-overall-label">📊 Overall Progress — 8-Week Plan</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="rm-overall-pct" id="rmPct8">0%</span>
+            <button class="btn-reset-rm" onclick="resetProgress('8')">Reset</button>
+          </div>
+        </div>
+        <div class="rm-overall-bar"><div class="rm-overall-fill" id="rmFill8" style="width:0%"></div></div>
+        <div class="rm-overall-complete" id="rmComplete8">🎉 All topics completed! You're ready for the Progress Test.</div>
+      </div>
+
+      <div id="rm4"></div>
+      <div id="rm8" style="display:none"></div>
+    </div>
+  </div>
+  <div id="rmActions" style="display:none">
+    <button class="btn btn-primary" onclick="goTo(6)">Take Progress Test (50 Questions) →</button>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 6: PROGRESS TEST ══ -->
+<div class="screen" id="s6">
+<div class="main"><div class="container">
+  <div id="progIntro" class="form-card">
+    <div class="form-title">Progress Assessment</div>
+    <div class="form-sub">50 questions to evaluate your learning</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-value" style="color:var(--accent)">50</div><div class="stat-key">Questions</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--green)">~45 min</div><div class="stat-key">Duration</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--accent2)">Groq</div><div class="stat-key">Powered</div></div>
+    </div>
+    <button class="btn btn-primary" onclick="startProgress()">Generate &amp; Start →</button>
+  </div>
+  <div id="progLoading" style="display:none" class="form-card">
+    <div class="ai-loading"><div class="pulse-ring"></div><div style="font-size:1rem;font-weight:600">Generating 50 questions…</div><div style="font-size:0.82rem;color:var(--muted)">Fetching in batches, please wait…</div></div>
+  </div>
+  <div id="progQuiz" style="display:none">
+    <div class="quiz-header">
+      <div><div style="font-size:1rem;font-weight:600">Progress Test</div><div class="quiz-counter" id="pCount">Q 1/50</div></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--green)" id="pScore">Score: 0</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="pProg" style="width:2%"></div></div>
+    <div class="question-card">
+      <div class="question-tag" id="pTag">Topic</div>
+      <div class="question-text" id="pText">Loading…</div>
+    </div>
+    <div class="options-grid" id="pOpts"></div>
+    <div id="pExpl" class="explanation-box" style="display:none;margin-bottom:1.5rem"></div>
+    <button class="btn btn-primary" id="pNext" style="display:none" onclick="nextP()">Next →</button>
+  </div>
+  <div id="progResult" style="display:none" class="form-card text-center">
+    <div class="form-title" style="margin-bottom:0.25rem">Progress Report Ready!</div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem">Your learning evaluation</div>
+    <div class="result-circle" id="pCircle"><div class="result-inner"><div class="result-score" id="pFinal">0/50</div><div class="result-label">Score</div></div></div>
+    <div id="pMsg" style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.6"></div>
+    <button class="btn btn-green" onclick="goTo(7)">Generate My Resume →</button>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ SCREEN 7: RESUME ══ -->
+<div class="screen" id="s7">
+<div class="main"><div class="container">
+  <div class="form-card">
+    <div class="form-title">AI Resume Generator</div>
+    <div class="form-sub">Professional resume</div>
+    <div id="resumeLoading" class="ai-loading"><div class="pulse-ring"></div><div style="font-size:0.85rem;color:var(--muted)">AI is writing your resume…</div></div>
+    <div id="resumeOut" style="display:none"></div>
+  </div>
+  <div id="resumeActions" style="display:none" class="flex-gap">
+    <button class="btn btn-primary" onclick="printResume()">⬇ Download / Print</button>
+    <button class="btn btn-outline" onclick="regenResume()">↻ Regenerate</button>
+    <button class="btn btn-outline" style="border-color:rgba(52,211,153,0.4);color:var(--green)" onclick="generateCertificate()">🎓 Certificate</button>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ PROFILE MODAL ══ -->
+<div class="profile-overlay" id="profileOverlay" onclick="if(event.target===this)closeProfile()">
+  <div class="profile-modal">
+    <div class="profile-header">
+      <div class="profile-header-left">
+        <div class="profile-avatar" id="pfAvatar">?</div>
+        <div>
+          <div class="profile-header-name" id="pfHeaderName">Profile</div>
+          <div class="profile-header-type" id="pfHeaderType"></div>
+        </div>
+      </div>
+      <button class="profile-close" onclick="closeProfile()">&#x2715;</button>
+    </div>
+    <div class="profile-body">
+      <div class="profile-tabs">
+        <button class="profile-tab active" onclick="switchProfileTab('view',this)">👤 Overview</button>
+        <button class="profile-tab" onclick="switchProfileTab('history',this)">📊 History</button>
+        <button class="profile-tab" onclick="switchProfileTab('edit',this)">✏️ Edit Profile</button>
+        <button class="profile-tab" onclick="switchProfileTab('password',this)">🔒 Password</button>
+      </div>
+
+      <!-- VIEW TAB -->
+      <div class="profile-tab-content active" id="pftab-view">
+        <div class="pf-row">
+          <div class="pf-field"><div class="pf-label">Full Name</div><div class="pf-value" id="pf-name">—</div></div>
+          <div class="pf-field"><div class="pf-label">Email</div><div class="pf-value" id="pf-email">—</div></div>
+        </div>
+        <div class="pf-row">
+          <div class="pf-field"><div class="pf-label">Phone</div><div class="pf-value" id="pf-phone">—</div></div>
+          <div class="pf-field"><div class="pf-label">User Type</div><div class="pf-value" id="pf-type">—</div></div>
+        </div>
+        <div class="pf-row">
+          <div class="pf-field"><div class="pf-label">College / School</div><div class="pf-value" id="pf-institution">—</div></div>
+          <div class="pf-field"><div class="pf-label">Qualification</div><div class="pf-value" id="pf-qual">—</div></div>
+        </div>
+        <div class="pf-field" style="margin-bottom:0.85rem"><div class="pf-label">Skills</div><div class="pf-value" id="pf-skills">—</div></div>
+        <div class="pf-field" style="margin-bottom:0.85rem"><div class="pf-label">Interests</div><div class="pf-value" id="pf-interests">—</div></div>
+        <div class="pf-row">
+          <div class="pf-field"><div class="pf-label">Experience</div><div class="pf-value" id="pf-exp">—</div></div>
+          <div class="pf-field"><div class="pf-label">Member Since</div><div class="pf-value" id="pf-joined">—</div></div>
+        </div>
+        <div class="pf-row">
+          <div class="pf-field"><div class="pf-label">GitHub</div><div class="pf-value" id="pf-github">—</div></div>
+          <div class="pf-field"><div class="pf-label">LinkedIn</div><div class="pf-value" id="pf-linkedin">—</div></div>
+        </div>
+      </div>
+
+      <!-- HISTORY TAB -->
+      <div class="profile-tab-content" id="pftab-history">
+        <div class="pf-stat-grid" id="pf-stat-grid">
+          <div class="pf-stat"><div class="pf-stat-val" style="color:var(--accent)" id="pfst-screening">—</div><div class="pf-stat-key">Screening Tests</div></div>
+          <div class="pf-stat"><div class="pf-stat-val" style="color:var(--green)" id="pfst-progress">—</div><div class="pf-stat-key">Progress Tests</div></div>
+          <div class="pf-stat"><div class="pf-stat-val" style="color:var(--accent2)" id="pfst-level">—</div><div class="pf-stat-key">Current Level</div></div>
+        </div>
+        <div class="pf-section-title">Assessment History</div>
+        <div id="pf-history-list"><div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:0.85rem">Loading…</div></div>
+      </div>
+
+      <!-- EDIT TAB -->
+      <div class="profile-tab-content" id="pftab-edit">
+        <div class="pf-alert pf-alert-ok" id="pf-edit-ok"></div>
+        <div class="pf-alert pf-alert-err" id="pf-edit-err"></div>
+        <div class="pf-row">
+          <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="pe-name" placeholder="Your name"/></div>
+          <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="pe-phone" placeholder="Phone number"/></div>
+        </div>
+        <div class="pf-row">
+          <div class="form-group"><label class="form-label">College</label><input class="form-input" id="pe-college" placeholder="College name"/></div>
+          <div class="form-group"><label class="form-label">School</label><input class="form-input" id="pe-school" placeholder="School name"/></div>
+        </div>
+        <div class="pf-row">
+          <div class="form-group"><label class="form-label">Qualification</label><input class="form-input" id="pe-qual" placeholder="B.Tech IT, 11th Grade…"/></div>
+          <div class="form-group"><label class="form-label">Experience</label><input class="form-input" id="pe-exp" placeholder="2 yrs at TCS…"/></div>
+        </div>
+        <div class="form-group"><label class="form-label">Skills</label><input class="form-input" id="pe-skills" placeholder="Java, Python, React…"/></div>
+        <div class="form-group"><label class="form-label">Interests</label><input class="form-input" id="pe-interests" placeholder="Web Development, AI…"/></div>
+        <div class="pf-row">
+          <div class="form-group"><label class="form-label">GitHub</label><input class="form-input" id="pe-github" placeholder="https://github.com/…"/></div>
+          <div class="form-group"><label class="form-label">LinkedIn</label><input class="form-input" id="pe-linkedin" placeholder="https://linkedin.com/…"/></div>
+        </div>
+        <div class="pf-edit-actions">
+          <button class="btn-cancel-edit" onclick="cancelEdit()">Cancel</button>
+          <button class="btn-save" id="btnSaveProfile" onclick="saveProfile()">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- PASSWORD TAB -->
+      <div class="profile-tab-content" id="pftab-password">
+        <div class="pf-alert pf-alert-ok" id="pf-pw-ok"></div>
+        <div class="pf-alert pf-alert-err" id="pf-pw-err"></div>
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input class="form-input" id="pw-current" type="password" placeholder="Enter current password"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input class="form-input" id="pw-new" type="password" placeholder="At least 8 characters"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input class="form-input" id="pw-confirm" type="password" placeholder="Repeat new password"/>
+        </div>
+        <div class="pf-edit-actions">
+          <button class="btn-cancel-edit" onclick="clearPasswordForm()">Clear</button>
+          <button class="btn-save" id="btnChangePassword" onclick="changePassword()">Change Password</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT / RESET PASSWORD MODAL -->
+<div class="fp-overlay" id="fpOverlay">
+  <div class="fp-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+      <div>
+        <div class="fp-title">🔑 Password Recovery</div>
+        <div class="fp-sub" style="margin-bottom:0">Enter your email to get a reset token, then use it to set a new password.</div>
+      </div>
+      <button style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;padding:4px" onclick="closeForgotPassword()">&#x2715;</button>
+    </div>
+
+    <!-- Step tabs -->
+    <div class="fp-steps">
+      <button class="fp-step-btn active" id="fpStepBtn1" onclick="switchFpStep(1)">1. Get Token</button>
+      <button class="fp-step-btn" id="fpStepBtn2" onclick="switchFpStep(2)">2. Reset Password</button>
+    </div>
+
+    <!-- Step 1: Request token -->
+    <div id="fpStep1">
+      <div class="pf-alert pf-alert-err" id="fp-req-err" style="display:none;margin-bottom:1rem"></div>
+      <div class="form-group">
+        <label class="form-label">Registered Email</label>
+        <input class="form-input" id="fp-email" type="email" placeholder="you@example.com"/>
+      </div>
+      <div id="fp-token-result" style="display:none">
+        <div class="fp-note">⚠️ In production this token would be sent to your email. For now, copy it below and use it in Step 2.</div>
+        <div class="fp-token-box" id="fp-token-display"></div>
+        <button class="btn-cancel-edit" style="width:100%;margin-bottom:0.75rem" onclick="copyResetToken()">📋 Copy Token</button>
+      </div>
+      <button class="btn-save" style="width:100%" id="btnRequestToken" onclick="requestResetToken()">Get Reset Token →</button>
+    </div>
+
+    <!-- Step 2: Reset with token -->
+    <div id="fpStep2" style="display:none">
+      <div class="pf-alert pf-alert-ok" id="fp-reset-ok" style="display:none;margin-bottom:1rem"></div>
+      <div class="pf-alert pf-alert-err" id="fp-reset-err" style="display:none;margin-bottom:1rem"></div>
+      <div class="form-group">
+        <label class="form-label">Reset Token</label>
+        <input class="form-input" id="fp-token-input" type="text" placeholder="Paste your reset token here"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <input class="form-input" id="fp-new-pw" type="password" placeholder="At least 8 characters"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm New Password</label>
+        <input class="form-input" id="fp-confirm-pw" type="password" placeholder="Repeat new password"/>
+      </div>
+      <button class="btn-save" style="width:100%" id="btnResetPassword" onclick="submitResetPassword()">Reset Password →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const S = {
+  userType: 'student',
+  user: null,
+  maxStep: 0,
+  resumeGenerated: false,
+  roadmapData: null,
+  sQs: [], sCurrent: 0, sScore: 0, sAnswers: [],
+  pQs: [], pCurrent: 0, pScore: 0, pAnswers: [],
+  level: 'basic',
+};
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+// Screen → nav step mapping:
+//   s3 = dashboard (no step), s4 = step 1 (Screening), s5 = step 2 (Roadmap),
+//   s6 = step 3 (Progress),   s7 = step 4 (Resume)
+// S.maxStep tracks the furthest authenticated step reached (1-4)
+
+function screenToStep(n) {
+  // screens 0,1,2 = pre-login, 3 = dashboard (step 0), 4=1, 5=2, 6=3, 7=4
+  if (n < 3) return -1;  // pre-login
+  if (n === 3) return 0; // dashboard
+  return n - 3;          // 4→1, 5→2, 6→3, 7→4
+}
+
+function updateNav(currentScreen) {
+  const step = screenToStep(currentScreen);
+  const loggedIn = currentScreen >= 3;
+
+  // Hide nav entirely on landing/login/register screens
+  document.getElementById('stepNav').style.display = loggedIn ? '' : 'none';
+  document.getElementById('logoutBtn').style.display = loggedIn ? '' : 'none';
+  document.getElementById('profileBtn').classList.toggle('visible', loggedIn);
+
+  if (!loggedIn) return;
+
+  // dot0 = Overview/Dashboard (always accessible when logged in)
+  const dot0 = document.getElementById('dot0');
+  const sep0 = document.getElementById('sep0');
+  if (dot0) {
+    dot0.classList.remove('active', 'done');
+    if (step === 0) dot0.classList.add('active');
+    else dot0.classList.add('done'); // always done once logged in
+  }
+  if (sep0) sep0.classList.toggle('done', step > 0);
+
+  // dot1–dot4 = module steps
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('dot' + i);
+    const sep = document.getElementById('sep' + i);
+    dot.classList.remove('active', 'done');
+
+    if (i < step) {
+      dot.classList.add('done');
+    } else if (i === step) {
+      dot.classList.add('active');
+    }
+
+    if (sep) sep.classList.toggle('done', i < step);
+  }
+}
+
+function goTo(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s' + n).classList.add('active');
+  window.scrollTo(0, 0);
+
+  // Track furthest step
+  const step = screenToStep(n);
+  if (step > 0 && step > (S.maxStep || 0)) S.maxStep = step;
+
+  updateNav(n);
+
+  // Auto-trigger resume generation when landing on screen 7
+  if (n === 7) {
+    document.getElementById('resumeLoading').style.display = '';
+    document.getElementById('resumeOut').style.display = 'none';
+    document.getElementById('resumeActions').style.display = 'none';
+    genResume();
+  }
+  // Load dashboard when landing on screen 3
+  if (n === 3) loadDashboard();
+}
+
+// Navigate back to a previously completed step
+function navTo(step) {
+  // step 0 = dashboard — always accessible when logged in
+  if (step === 0) { goTo(3); return; }
+  if (step > (S.maxStep || 0)) return; // locked — not yet reached
+  const screen = step + 3; // step 1→s4, 2→s5, 3→s6, 4→s7
+  // For screen 7 (resume), don't re-trigger genResume if already generated
+  if (screen === 7) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('s7').classList.add('active');
+    window.scrollTo(0, 0);
+    updateNav(7);
+    return;
+  }
+  goTo(screen);
+}
+
+// ── USER TYPE ─────────────────────────────────────────────────────────────────
+function setType(t) {
+  S.userType = t;
+  ['fCollege','fSchool','fPassed'].forEach(id => document.getElementById(id).style.display = 'none');
+  ['btnStudent','btnSchool','btnPassed'].forEach(id => document.getElementById(id).classList.remove('active'));
+  if (t === 'student')    { document.getElementById('fCollege').style.display = ''; document.getElementById('btnStudent').classList.add('active'); }
+  if (t === 'school')     { document.getElementById('fSchool').style.display  = ''; document.getElementById('btnSchool').classList.add('active'); }
+  if (t === 'passedOut')  { document.getElementById('fPassed').style.display  = ''; document.getElementById('btnPassed').classList.add('active'); }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function v(id) { return document.getElementById(id)?.value?.trim() || ''; }
+function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.style.display = ''; }
+function hideErr(id) { document.getElementById(id).style.display = 'none'; }
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+async function api(path, method = 'GET', body = null) {
+  const opts = { method, credentials: 'include', headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+// ── REGISTER ─────────────────────────────────────────────────────────────────
+async function doRegister() {
+  hideErr('regError');
+  const btn = document.getElementById('btnRegister');
+  const payload = {
+    name: v('rName'), email: v('rEmail'), password: v('rPass'), phone: v('rPhone'),
+    user_type: S.userType,
+  };
+  if (!payload.name || !payload.email || !payload.password) { showErr('regError','Please fill all required fields.'); return; }
+  if (S.userType === 'student')  { payload.college = v('rCollege'); payload.qualification = v('rQual'); payload.skills = v('rSkills'); payload.interests = v('rInterests'); payload.github = v('rGithub'); payload.linkedin = v('rLinkedin'); }
+  if (S.userType === 'school')   { payload.school = v('rSchool'); payload.qualification = v('rSchoolQual'); payload.skills = v('rSchoolSkills'); payload.interests = v('rSchoolInterests'); }
+  if (S.userType === 'passedOut'){ payload.college = v('rPCollege'); payload.qualification = v('rPQual'); payload.experience = v('rExp'); payload.skills = v('rPSkills'); payload.interests = v('rPInterests'); payload.github = v('rPGithub'); payload.linkedin = v('rPLinkedin'); }
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  try {
+    await api('/api/register', 'POST', payload);
+    document.getElementById('lEmail').value = payload.email;
+    document.getElementById('lPass').value = payload.password;
+    goTo(2);
+  } catch(e) { showErr('regError', e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Create Account →'; }
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const u = S.user;
+  if (!u) return;
+
+  // Welcome banner
+  const typeLabel = { student: '🎓 Student', school: '🏫 School Student', passedOut: '💼 Professional' };
+  document.getElementById('dWelcomeName').textContent = `Welcome back, ${u.name}! 👋`;
+  document.getElementById('dWelcomeSub').textContent =
+    `${typeLabel[u.user_type] || u.user_type} • ${u.skills || 'No skills set'} • ${u.interests || 'No interests set'}`;
+
+  // Load history
+  let assessments = [];
+  try {
+    const h = await api('/api/history');
+    assessments = h.assessments || [];
+  } catch(e) {}
+
+  const screeningTests = assessments.filter(a => a.type === 'screening');
+  const progressTests  = assessments.filter(a => a.type === 'progress');
+  const latestScreening = screeningTests[0] || null;
+  const latestProgress  = progressTests[0] || null;
+
+  // Stats
+  document.getElementById('dStatScreening').textContent = screeningTests.length || '0';
+  document.getElementById('dStatProgress').textContent  = progressTests.length  || '0';
+  document.getElementById('dStatLevel').textContent     = latestScreening ? latestScreening.level : '—';
+
+  // Check roadmap & resume — use dedicated flags with explicit logging
+  let hasRoadmap = false, hasResume = false;
+  try {
+    const rm = await api('/api/roadmap');
+    if (rm && (rm.weeks_4 || rm.level)) { hasRoadmap = true; S.roadmapData = rm; }
+  } catch(e) { hasRoadmap = false; }
+  try {
+    const rv = await api('/api/resume');
+    if (rv && (rv.name || rv.summary)) hasResume = true;
+  } catch(e) { hasResume = false; }
+
+  // Also treat resume as done if we already generated it this session
+  if (S.resumeGenerated) hasResume = true;
+
+  document.getElementById('dStatResume').textContent = hasResume ? '✓' : '—';
+
+  // Module 1: Screening
+  const mod1Btn    = document.getElementById('dMod1Btn');
+  const mod1Status = document.getElementById('dMod1Status');
+  const mod1Meta   = document.getElementById('dMod1Meta');
+  if (screeningTests.length > 0) {
+    const pct = Math.round((latestScreening.score / latestScreening.total) * 100);
+    mod1Status.textContent = 'Completed'; mod1Status.className = 'dash-module-status ds-done';
+    mod1Meta.textContent   = `Last: ${latestScreening.score}/${latestScreening.total} (${pct}%) • ${latestScreening.level}`;
+    mod1Btn.textContent    = 'Retake Screening';
+    mod1Btn.className      = 'dash-module-btn dmb-outline';
+    mod1Btn.disabled       = false;
+    mod1Btn.onclick        = () => { S.maxStep = Math.max(S.maxStep, 1); goTo(4); };
+    S.maxStep = Math.max(S.maxStep, 1);
+    S.level   = latestScreening.level || 'basic';
+  } else {
+    mod1Status.textContent = 'Not Started'; mod1Status.className = 'dash-module-status ds-pending';
+    mod1Btn.onclick = () => { S.maxStep = Math.max(S.maxStep, 1); goTo(4); };
+  }
+
+  // Module 2: Roadmap
+  const mod2Btn    = document.getElementById('dMod2Btn');
+  const mod2Status = document.getElementById('dMod2Status');
+  const mod2Meta   = document.getElementById('dMod2Meta');
+  if (hasRoadmap) {
+    mod2Status.textContent = 'Generated'; mod2Status.className = 'dash-module-status ds-done';
+    mod2Meta.textContent   = `Level: ${S.level}`;
+    mod2Btn.textContent    = 'View Roadmap'; mod2Btn.className = 'dash-module-btn dmb-outline';
+    mod2Btn.disabled       = false;
+    mod2Btn.onclick        = () => {
+      S.maxStep = Math.max(S.maxStep, 2);
+      // If roadmap already loaded, show it directly without regenerating
+      if (S.roadmapData) {
+        goTo(5);
+        document.getElementById('rmLoading').style.display = 'none';
+        document.getElementById('rmContent').style.display = '';
+        document.getElementById('rmActions').style.display = '';
+        buildWeeks('rm4', S.roadmapData.weeks_4);
+        buildWeeks('rm8', S.roadmapData.weeks_8);
+        document.getElementById('rmTitle').textContent = `${S.level==='advanced'?'Advanced':'Basic'} Roadmap — ${S.user?.skills||'Tech'}`;
+        document.getElementById('rmSub').textContent = `Personalised for ${S.user?.name} • ${S.user?.skills} • ${S.user?.interests}`;
+      } else {
+        goToRoadmap();
+      }
+    };
+    S.maxStep = Math.max(S.maxStep, 2);
+  } else if (screeningTests.length > 0) {
+    mod2Status.textContent = 'Ready'; mod2Status.className = 'dash-module-status ds-pending';
+    mod2Btn.textContent    = 'Generate Roadmap'; mod2Btn.className = 'dash-module-btn dmb-primary';
+    mod2Btn.disabled       = false;
+    mod2Btn.onclick        = () => goToRoadmap();
+  }
+
+  // Module 3: Progress Test
+  const mod3Btn    = document.getElementById('dMod3Btn');
+  const mod3Status = document.getElementById('dMod3Status');
+  const mod3Meta   = document.getElementById('dMod3Meta');
+  if (progressTests.length > 0) {
+    const pct = Math.round((latestProgress.score / latestProgress.total) * 100);
+    mod3Status.textContent = 'Completed'; mod3Status.className = 'dash-module-status ds-done';
+    mod3Meta.textContent   = `Last: ${latestProgress.score}/${latestProgress.total} (${pct}%)`;
+    mod3Btn.textContent    = 'Retake Progress Test'; mod3Btn.className = 'dash-module-btn dmb-outline';
+    mod3Btn.disabled       = false;
+    mod3Btn.onclick        = () => { S.maxStep = Math.max(S.maxStep, 3); goTo(6); };
+    S.maxStep = Math.max(S.maxStep, 3);
+  } else if (hasRoadmap) {
+    mod3Status.textContent = 'Ready'; mod3Status.className = 'dash-module-status ds-pending';
+    mod3Btn.textContent    = 'Start Progress Test'; mod3Btn.className = 'dash-module-btn dmb-primary';
+    mod3Btn.disabled       = false;
+    mod3Btn.onclick        = () => { S.maxStep = Math.max(S.maxStep, 3); goTo(6); };
+  }
+
+  // Module 4: Resume
+  const mod4Btn    = document.getElementById('dMod4Btn');
+  const mod4Status = document.getElementById('dMod4Status');
+  const mod4Meta   = document.getElementById('dMod4Meta');
+  if (hasResume) {
+    mod4Status.textContent = 'Generated'; mod4Status.className = 'dash-module-status ds-done';
+    mod4Btn.textContent    = 'View Resume'; mod4Btn.className = 'dash-module-btn dmb-outline';
+    mod4Btn.disabled       = false;
+    mod4Btn.onclick        = () => { S.maxStep = Math.max(S.maxStep, 4); goTo(7); };
+    S.maxStep = Math.max(S.maxStep, 4);
+  } else if (progressTests.length > 0) {
+    mod4Status.textContent = 'Ready'; mod4Status.className = 'dash-module-status ds-pending';
+    mod4Btn.textContent    = 'Generate Resume'; mod4Btn.className = 'dash-module-btn dmb-primary';
+    mod4Btn.disabled       = false;
+    mod4Btn.onclick        = () => { S.maxStep = Math.max(S.maxStep, 4); goTo(7); };
+  }
+
+  // Recent activity list
+  const listEl = document.getElementById('dRecentList');
+  if (!assessments.length) {
+    listEl.innerHTML = '<div class="dash-empty">No activity yet. Start with the Screening Test!</div>';
+  } else {
+    listEl.innerHTML = assessments.slice(0, 6).map(a => {
+      const pct  = a.total ? Math.round((a.score / a.total) * 100) : 0;
+      const col  = a.type === 'screening' ? 'var(--accent)' : 'var(--green)';
+      const icon = a.type === 'screening' ? '📝' : '🎯';
+      const date = a.taken_at ? new Date(a.taken_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+      const lvl  = a.level ? ` • ${a.level}` : '';
+      return `<div class="dash-recent-item">
+        <span>${icon} <span style="text-transform:capitalize;font-weight:500">${a.type}</span>${lvl}</span>
+        <span style="display:flex;align-items:center;gap:12px">
+          <span style="font-family:'JetBrains Mono',monospace;color:${col}">${a.score}/${a.total} (${pct}%)</span>
+          <span style="color:var(--muted);font-size:0.75rem">${date}</span>
+        </span>
+      </div>`;
+    }).join('');
+  }
+
+  // Refresh nav now that maxStep is updated
+  updateNav(3);
+
+  // Update badges
+  updateBadges(screeningTests.length > 0, hasRoadmap, progressTests.length > 0, hasResume);
+
+  // Update sidebar nav badges
+  updateSidebarBadges(screeningTests, progressTests, hasRoadmap, hasResume, latestScreening, latestProgress);
+
+  // Populate section detail content
+  populateDashSections(screeningTests, progressTests, hasRoadmap, hasResume, latestScreening, latestProgress);
+}
+
+// ── DASHBOARD TAB SWITCHING ───────────────────────────────────────────────────
+function switchDashTab(name, el) {
+  document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.dash-nav-item').forEach(n => n.classList.remove('active'));
+  const sec = document.getElementById('dsec-' + name);
+  if (sec) sec.classList.add('active');
+  if (el) el.classList.add('active');
+  if (name === 'jobs') { /* user triggers manually */ }
+}
+
+function updateSidebarBadges(screeningTests, progressTests, hasRoadmap, hasResume, latestScreening, latestProgress) {
+  // Badge 1: Screening
+  const b1 = document.getElementById('dnav-badge1');
+  if (b1) {
+    if (screeningTests.length > 0) {
+      const pct = Math.round((latestScreening.score / latestScreening.total) * 100);
+      b1.textContent = pct + '%';
+      b1.className = 'dash-nav-badge';
+    } else {
+      b1.textContent = 'Start';
+      b1.className = 'dash-nav-badge pending';
+    }
+  }
+  // Badge 2: Roadmap
+  const b2 = document.getElementById('dnav-badge2');
+  if (b2) {
+    if (hasRoadmap) { b2.textContent = '✓'; b2.className = 'dash-nav-badge'; }
+    else if (screeningTests.length > 0) { b2.textContent = 'Ready'; b2.className = 'dash-nav-badge pending'; }
+    else { b2.textContent = 'Locked'; b2.className = 'dash-nav-badge locked'; }
+  }
+  // Badge 3: Progress
+  const b3 = document.getElementById('dnav-badge3');
+  if (b3) {
+    if (progressTests.length > 0) {
+      const pct = Math.round((latestProgress.score / latestProgress.total) * 100);
+      b3.textContent = pct + '%';
+      b3.className = 'dash-nav-badge';
+    } else if (hasRoadmap) { b3.textContent = 'Ready'; b3.className = 'dash-nav-badge pending'; }
+    else { b3.textContent = 'Locked'; b3.className = 'dash-nav-badge locked'; }
+  }
+  // Badge 4: Resume
+  const b4 = document.getElementById('dnav-badge4');
+  if (b4) {
+    if (hasResume) { b4.textContent = '✓'; b4.className = 'dash-nav-badge'; }
+    else if (progressTests.length > 0) { b4.textContent = 'Ready'; b4.className = 'dash-nav-badge pending'; }
+    else { b4.textContent = 'Locked'; b4.className = 'dash-nav-badge locked'; }
+  }
+}
+
+function populateDashSections(screeningTests, progressTests, hasRoadmap, hasResume, latestScreening, latestProgress) {
+  const fmtDate = s => s ? new Date(s).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+
+  // ── Screening section ──
+  const sc = document.getElementById('dsec-screening-content');
+  if (sc) {
+    if (!screeningTests.length) {
+      sc.innerHTML = `<div style="padding:1rem 0">
+        <div class="alert alert-info" style="margin-bottom:1rem">No screening test taken yet. Start your first test to determine your learning level.</div>
+        <button class="btn btn-primary" onclick="goTo(4)" style="max-width:260px">Start Screening Test →</button>
+      </div>`;
+    } else {
+      const pct = Math.round((latestScreening.score / latestScreening.total) * 100);
+      const lvlClass = latestScreening.level === 'advanced' ? 'level-advanced' : 'level-basic';
+      sc.innerHTML = `<div style="padding:0.5rem 0">
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem">
+          <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:1rem 1.5rem">
+            <div style="font-size:2rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent)">${latestScreening.score}/${latestScreening.total}</div>
+            <div style="font-size:0.72rem;color:var(--muted)">Latest Score</div>
+          </div>
+          <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:1rem 1.5rem">
+            <div style="font-size:2rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--green)">${pct}%</div>
+            <div style="font-size:0.72rem;color:var(--muted)">Percentage</div>
+          </div>
+          <div>
+            <span class="level-badge ${lvlClass}">${latestScreening.level === 'advanced' ? '🚀 Advanced Level' : '📘 Basic Level'}</span>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:4px">Taken ${fmtDate(latestScreening.taken_at)}</div>
+            <div style="font-size:0.75rem;color:var(--muted)">${screeningTests.length} test${screeningTests.length > 1 ? 's' : ''} taken total</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="goTo(4)" style="max-width:200px;padding:0.6rem">Retake Screening</button>
+        </div>
+      </div>`;
+    }
+  }
+
+  // ── Roadmap section ──
+  const rm = document.getElementById('dsec-roadmap-content');
+  if (rm) {
+    if (!hasRoadmap && !screeningTests.length) {
+      rm.innerHTML = `<div class="alert alert-info" style="margin:0.5rem 0">Complete the Screening Test first to unlock your roadmap.</div>`;
+    } else if (!hasRoadmap) {
+      rm.innerHTML = `<div style="padding:0.5rem 0">
+        <div class="alert alert-info" style="margin-bottom:1rem">Screening complete! Generate your personalised learning roadmap now.</div>
+        <button class="btn btn-primary" onclick="goToRoadmap()" style="max-width:260px">Generate My Roadmap →</button>
+      </div>`;
+    } else {
+      rm.innerHTML = `<div style="padding:0.5rem 0">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;background:var(--bg3);border-radius:12px;padding:1rem">
+          <span style="font-size:2rem">🗺️</span>
+          <div>
+            <div style="font-weight:600;margin-bottom:2px">Roadmap Generated</div>
+            <div style="font-size:0.78rem;color:var(--muted)">Level: <strong>${(S.level||'basic').charAt(0).toUpperCase()+(S.level||'basic').slice(1)}</strong> • 4-week &amp; 8-week plans available</div>
+          </div>
+          <span style="margin-left:auto;font-size:1.5rem">✅</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="document.getElementById('dMod2Btn').click()" style="max-width:200px;padding:0.6rem">View Roadmap</button>
+          <button class="btn btn-outline" onclick="goToRoadmap()" style="max-width:200px;padding:0.6rem">Regenerate</button>
+        </div>
+      </div>`;
+    }
+  }
+
+  // ── Progress section ──
+  const pr = document.getElementById('dsec-progress-content');
+  if (pr) {
+    if (!hasRoadmap) {
+      pr.innerHTML = `<div class="alert alert-info" style="margin:0.5rem 0">Complete the Roadmap step first to unlock the Progress Test.</div>`;
+    } else if (!progressTests.length) {
+      pr.innerHTML = `<div style="padding:0.5rem 0">
+        <div class="alert alert-info" style="margin-bottom:1rem">Roadmap ready! Take the 50-question progress test to evaluate your learning.</div>
+        <button class="btn btn-primary" onclick="goTo(6)" style="max-width:260px">Start Progress Test →</button>
+      </div>`;
+    } else {
+      const pct = Math.round((latestProgress.score / latestProgress.total) * 100);
+      const lvl = pct >= 80 ? 'Expert' : pct >= 60 ? 'Proficient' : 'Developing';
+      const col = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--accent)' : 'var(--amber)';
+      pr.innerHTML = `<div style="padding:0.5rem 0">
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem">
+          <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:1rem 1.5rem">
+            <div style="font-size:2rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--green)">${latestProgress.score}/${latestProgress.total}</div>
+            <div style="font-size:0.72rem;color:var(--muted)">Latest Score</div>
+          </div>
+          <div style="text-align:center;background:var(--bg3);border-radius:12px;padding:1rem 1.5rem">
+            <div style="font-size:2rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:${col}">${pct}%</div>
+            <div style="font-size:0.72rem;color:var(--muted)">Percentage</div>
+          </div>
+          <div>
+            <div style="font-weight:600;color:${col};font-size:1rem">${lvl}</div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:4px">Taken ${fmtDate(latestProgress.taken_at)}</div>
+            <div style="font-size:0.75rem;color:var(--muted)">${progressTests.length} test${progressTests.length > 1 ? 's' : ''} taken total</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="goTo(6)" style="max-width:200px;padding:0.6rem">Retake Progress Test</button>
+        </div>
+      </div>`;
+    }
+  }
+
+  // ── Resume section ──
+  const rv = document.getElementById('dsec-resume-content');
+  if (rv) {
+    if (!progressTests.length) {
+      rv.innerHTML = `<div class="alert alert-info" style="margin:0.5rem 0">Complete the Progress Test first to unlock the Resume Generator.</div>`;
+    } else if (!hasResume) {
+      rv.innerHTML = `<div style="padding:0.5rem 0">
+        <div class="alert alert-info" style="margin-bottom:1rem">Progress test done! Generate your AI-powered professional resume now.</div>
+        <button class="btn btn-green" onclick="goTo(7)" style="max-width:260px">Generate My Resume →</button>
+      </div>`;
+    } else {
+      rv.innerHTML = `<div style="padding:0.5rem 0">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;background:var(--bg3);border-radius:12px;padding:1rem">
+          <span style="font-size:2rem">📄</span>
+          <div>
+            <div style="font-weight:600;margin-bottom:2px">Resume Generated</div>
+            <div style="font-size:0.78rem;color:var(--muted)">ATS-friendly professional resume ready to download</div>
+          </div>
+          <span style="margin-left:auto;font-size:1.5rem">✅</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="document.getElementById('dMod4Btn').click()" style="max-width:180px;padding:0.6rem">View Resume</button>
+          <button class="btn btn-outline" style="border-color:rgba(52,211,153,0.4);color:var(--green);max-width:180px;padding:0.6rem" onclick="generateCertificate()">🎓 Certificate</button>
+        </div>
+      </div>`;
+    }
+  }
+}
+
+// ── BADGES & CERTIFICATE ──────────────────────────────────────────────────────
+function updateBadges(hasScreening, hasRoadmap, hasProgress, hasResume) {
+  const badges = [
+    { id: 'badge1', label: 'badge1Label', earned: hasScreening,  text: 'Screening' },
+    { id: 'badge2', label: 'badge2Label', earned: hasRoadmap,    text: 'Roadmap'   },
+    { id: 'badge3', label: 'badge3Label', earned: hasProgress,   text: 'Progress'  },
+    { id: 'badge4', label: 'badge4Label', earned: hasResume,     text: 'Resume'    },
+    { id: 'badge5', label: 'badge5Label', earned: hasScreening && hasRoadmap && hasProgress && hasResume, text: 'Graduate' },
+  ];
+  badges.forEach(b => {
+    const circle = document.getElementById(b.id);
+    const label  = document.getElementById(b.label);
+    if (b.earned) {
+      circle.classList.add('earned');
+      label.classList.add('earned');
+      label.textContent = b.text;
+    } else {
+      circle.classList.remove('earned');
+      label.classList.remove('earned');
+      label.textContent = b.text;
+    }
+  });
+
+  // Show certificate banner only when all 4 modules done
+  const allDone = hasScreening && hasRoadmap && hasProgress && hasResume;
+  document.getElementById('certBanner').classList.toggle('visible', allDone);
+}
+
+function generateCertificate() {
+  const u = S.user;
+  if (!u) return;
+  const date = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+  const level = (S.level || 'basic').charAt(0).toUpperCase() + (S.level || 'basic').slice(1);
+  const certId = 'CP-' + (u.id || '0000') + '-' + Date.now().toString(36).toUpperCase();
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CareerPath AI — Certificate of Completion</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Sora:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;background:#1a1a2e}
+  body{display:flex;align-items:center;justify-content:center;padding:2rem;font-family:'Sora',sans-serif}
+
+  .page{width:100%;max-width:900px;background:#fff;position:relative;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.4)}
+
+  /* ── BORDER FRAME ── */
+  .frame-outer{position:absolute;inset:12px;border:2px solid #b8860b;pointer-events:none;z-index:10}
+  .frame-inner{position:absolute;inset:18px;border:1px solid rgba(184,134,11,0.4);pointer-events:none;z-index:10}
+  .corner{position:absolute;width:40px;height:40px;z-index:11}
+  .corner svg{width:40px;height:40px}
+  .corner-tl{top:8px;left:8px}
+  .corner-tr{top:8px;right:8px;transform:scaleX(-1)}
+  .corner-bl{bottom:8px;left:8px;transform:scaleY(-1)}
+  .corner-br{bottom:8px;right:8px;transform:scale(-1)}
+
+  /* ── BACKGROUND WATERMARK ── */
+  .watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;opacity:0.04}
+  .watermark-text{font-family:'Playfair Display',serif;font-size:9rem;font-weight:900;color:#0284c7;transform:rotate(-30deg);white-space:nowrap;letter-spacing:-4px}
+
+  /* ── HEADER ── */
+  .cert-header{background:linear-gradient(135deg,#0a0e1a 0%,#1a1a3e 40%,#0a1628 100%);padding:2.5rem 3.5rem 3rem;text-align:center;position:relative;z-index:2}
+  .cert-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60px;background:#fff;clip-path:ellipse(52% 100% at 50% 100%)}
+  .header-stars{display:flex;justify-content:center;gap:8px;margin-bottom:1rem}
+  .star{width:6px;height:6px;background:#b8860b;transform:rotate(45deg)}
+  .header-logo-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:0.6rem}
+  .header-logo-icon{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#818cf8);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+  .header-logo-text{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:500;color:#fff;letter-spacing:0.05em}
+  .header-divider{width:60px;height:2px;background:linear-gradient(90deg,transparent,#b8860b,transparent);margin:0.75rem auto}
+  .header-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#fff;letter-spacing:0.12em;text-transform:uppercase}
+  .header-subtitle{font-size:0.72rem;color:rgba(255,255,255,0.55);letter-spacing:0.25em;text-transform:uppercase;margin-top:0.4rem}
+
+  /* ── BODY ── */
+  .cert-body{padding:2.5rem 4rem 2rem;text-align:center;position:relative;z-index:2}
+  .presented-to{font-size:0.75rem;color:#94a3b8;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.6rem}
+  .recipient-name{font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;line-height:1.1;margin-bottom:0.5rem;background:linear-gradient(135deg,#0284c7,#6366f1,#0284c7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .name-underline{width:200px;height:2px;background:linear-gradient(90deg,transparent,#b8860b,transparent);margin:0 auto 1.5rem}
+
+  .cert-text{font-size:0.9rem;color:#475569;line-height:1.8;max-width:560px;margin:0 auto 2rem}
+  .cert-text strong{color:#1a202c;font-weight:600}
+
+  /* ── ACHIEVEMENT STRIP ── */
+  .achievement-strip{display:flex;justify-content:center;gap:0;margin-bottom:2rem;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+  .achievement-item{flex:1;padding:0.9rem 0.5rem;text-align:center;border-right:1px solid #e2e8f0;background:#fafbfc;position:relative}
+  .achievement-item:last-child{border-right:none}
+  .achievement-item.gold{background:linear-gradient(135deg,#fffbeb,#fef3c7)}
+  .ach-icon{font-size:1.4rem;margin-bottom:4px}
+  .ach-label{font-size:0.62rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.06em}
+  .ach-check{position:absolute;top:6px;right:6px;width:14px;height:14px;border-radius:50%;background:#059669;color:#fff;font-size:0.5rem;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+  /* ── DETAILS ROW ── */
+  .details-row{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;margin-bottom:2rem}
+  .detail-pill{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #bae6fd;border-radius:50px;padding:0.5rem 1.25rem;text-align:center}
+  .detail-pill-key{font-size:0.62rem;color:#0284c7;text-transform:uppercase;letter-spacing:0.08em;font-weight:600}
+  .detail-pill-val{font-size:0.82rem;font-weight:600;color:#0c4a6e;margin-top:1px}
+
+  /* ── DIVIDER ── */
+  .ornament-divider{display:flex;align-items:center;gap:12px;margin:0 auto 2rem;max-width:400px}
+  .ornament-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,#b8860b)}
+  .ornament-line.right{background:linear-gradient(90deg,#b8860b,transparent)}
+  .ornament-diamond{width:8px;height:8px;background:#b8860b;transform:rotate(45deg);flex-shrink:0}
+
+  /* ── FOOTER ── */
+  .cert-footer{display:flex;justify-content:space-between;align-items:flex-end;padding:0 4rem 2.5rem;position:relative;z-index:2;flex-wrap:wrap;gap:1.5rem}
+  .sig-block{text-align:center;min-width:140px}
+  .sig-line{height:1px;background:linear-gradient(90deg,transparent,#94a3b8,transparent);margin-bottom:6px}
+  .sig-name{font-size:0.78rem;font-weight:600;color:#1a202c}
+  .sig-role{font-size:0.65rem;color:#94a3b8;margin-top:2px}
+
+  .seal{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#0a0e1a,#1a1a3e);border:3px solid #b8860b;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#b8860b;text-align:center;position:relative}
+  .seal::before{content:'';position:absolute;inset:4px;border-radius:50%;border:1px solid rgba(184,134,11,0.4)}
+  .seal-star{font-size:1.2rem;margin-bottom:1px}
+  .seal-text{font-size:0.42rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;line-height:1.5}
+
+  .cert-id-block{text-align:right;min-width:140px}
+  .cert-id-label{font-size:0.62rem;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px}
+  .cert-id-val{font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:#475569;font-weight:500}
+
+  /* ── BOTTOM BAND ── */
+  .cert-bottom-band{background:linear-gradient(135deg,#0a0e1a,#1a1a3e);padding:0.6rem 3.5rem;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2}
+  .band-text{font-size:0.62rem;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase}
+  .band-dots{display:flex;gap:4px}
+  .band-dot{width:4px;height:4px;border-radius:50%;background:rgba(184,134,11,0.6)}
+
+  @media print{
+    html,body{background:#fff;padding:0;margin:0}
+    .page{box-shadow:none;max-width:100%;width:100%}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+    @page{margin:0;size:A4 portrait}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Decorative border frame -->
+  <div class="frame-outer"></div>
+  <div class="frame-inner"></div>
+
+  <!-- Corner ornaments -->
+  <div class="corner corner-tl"><svg viewBox="0 0 40 40" fill="none"><path d="M2 38 L2 2 L38 2" stroke="#b8860b" stroke-width="2" fill="none"/><circle cx="2" cy="2" r="3" fill="#b8860b"/><path d="M8 2 L2 8" stroke="#b8860b" stroke-width="1" opacity="0.5"/></svg></div>
+  <div class="corner corner-tr"><svg viewBox="0 0 40 40" fill="none"><path d="M2 38 L2 2 L38 2" stroke="#b8860b" stroke-width="2" fill="none"/><circle cx="2" cy="2" r="3" fill="#b8860b"/><path d="M8 2 L2 8" stroke="#b8860b" stroke-width="1" opacity="0.5"/></svg></div>
+  <div class="corner corner-bl"><svg viewBox="0 0 40 40" fill="none"><path d="M2 38 L2 2 L38 2" stroke="#b8860b" stroke-width="2" fill="none"/><circle cx="2" cy="2" r="3" fill="#b8860b"/><path d="M8 2 L2 8" stroke="#b8860b" stroke-width="1" opacity="0.5"/></svg></div>
+  <div class="corner corner-br"><svg viewBox="0 0 40 40" fill="none"><path d="M2 38 L2 2 L38 2" stroke="#b8860b" stroke-width="2" fill="none"/><circle cx="2" cy="2" r="3" fill="#b8860b"/><path d="M8 2 L2 8" stroke="#b8860b" stroke-width="1" opacity="0.5"/></svg></div>
+
+  <!-- Background watermark -->
+  <div class="watermark"><div class="watermark-text">CareerPath</div></div>
+
+  <!-- Header -->
+  <div class="cert-header">
+    <div class="header-stars">
+      <div class="star"></div><div class="star"></div><div class="star"></div>
+      <div class="star" style="background:#fff;opacity:0.6"></div>
+      <div class="star"></div><div class="star"></div><div class="star"></div>
+    </div>
+    <div class="header-logo-row">
+      <div class="header-logo-icon">🎓</div>
+      <div class="header-logo-text">• CareerPath AI</div>
+    </div>
+    <div class="header-divider"></div>
+    <div class="header-title">Certificate of Completion</div>
+    <div class="header-subtitle">AI-Powered Career Guidance Programme</div>
+  </div>
+
+  <!-- Body -->
+  <div class="cert-body">
+    <div class="presented-to">This is to certify that</div>
+    <div class="recipient-name">${u.name}</div>
+    <div class="name-underline"></div>
+
+    <div class="cert-text">
+      has successfully completed all modules of the
+      <strong>CareerPath AI Career Development Programme</strong>,
+      demonstrating proficiency in <strong>${u.skills || 'technical skills'}</strong>
+      with a specialisation in <strong>${u.interests || 'software development'}</strong>.
+      This achievement reflects dedication, skill, and a commitment to professional growth.
+    </div>
+
+    <!-- Achievement badges -->
+    <div class="achievement-strip">
+      <div class="achievement-item">
+        <div class="ach-check">✓</div>
+        <div class="ach-icon">📝</div>
+        <div class="ach-label">Screening</div>
+      </div>
+      <div class="achievement-item">
+        <div class="ach-check">✓</div>
+        <div class="ach-icon">🗺️</div>
+        <div class="ach-label">Roadmap</div>
+      </div>
+      <div class="achievement-item">
+        <div class="ach-check">✓</div>
+        <div class="ach-icon">🎯</div>
+        <div class="ach-label">Progress</div>
+      </div>
+      <div class="achievement-item">
+        <div class="ach-check">✓</div>
+        <div class="ach-icon">📄</div>
+        <div class="ach-label">Resume</div>
+      </div>
+      <div class="achievement-item gold">
+        <div class="ach-check" style="background:#b8860b">★</div>
+        <div class="ach-icon">🏆</div>
+        <div class="ach-label" style="color:#92400e">Graduate</div>
+      </div>
+    </div>
+
+    <!-- Detail pills -->
+    <div class="details-row">
+      <div class="detail-pill">
+        <div class="detail-pill-key">Learning Level</div>
+        <div class="detail-pill-val">${level}</div>
+      </div>
+      <div class="detail-pill">
+        <div class="detail-pill-key">Qualification</div>
+        <div class="detail-pill-val">${u.qualification || 'N/A'}</div>
+      </div>
+      <div class="detail-pill">
+        <div class="detail-pill-key">Institution</div>
+        <div class="detail-pill-val">${u.college || u.school || 'N/A'}</div>
+      </div>
+      <div class="detail-pill">
+        <div class="detail-pill-key">Date of Issue</div>
+        <div class="detail-pill-val">${date}</div>
+      </div>
+    </div>
+
+    <!-- Ornament divider -->
+    <div class="ornament-divider">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-diamond" style="width:5px;height:5px"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line right"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="cert-footer">
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-name">CareerPath AI</div>
+      <div class="sig-role">Platform Director</div>
+    </div>
+
+    <div class="seal">
+      <div class="seal-star">⭐</div>
+      <div class="seal-text">Verified<br>Graduate<br>2025</div>
+    </div>
+
+    <div class="cert-id-block">
+      <div class="cert-id-label">Certificate ID</div>
+      <div class="cert-id-val">${certId}</div>
+      <div class="cert-id-val" style="margin-top:3px;color:#94a3b8">Issued ${date}</div>
+    </div>
+  </div>
+
+  <!-- Bottom band -->
+  <div class="cert-bottom-band">
+    <div class="band-text">careerpath.ai &nbsp;•&nbsp; AI Career Guidance</div>
+    <div class="band-dots">
+      <div class="band-dot"></div><div class="band-dot"></div><div class="band-dot"></div>
+      <div class="band-dot"></div><div class="band-dot"></div>
+    </div>
+    <div class="band-text">Powered by Groq · Gemini · OpenRouter</div>
+  </div>
+
+</div>
+<script>window.onload = () => { setTimeout(() => window.print(), 800); }<\/script>
+</body>
+</html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  hideErr('loginError');
+  const btn = document.getElementById('btnLogin');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const data = await api('/api/login', 'POST', { email: v('lEmail'), password: v('lPass') });
+    S.user = data.user;
+    goTo(3);
+  } catch(e) { showErr('loginError', e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Sign In →'; }
+}
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+async function doLogout() {
+  try { await api('/api/logout', 'POST'); } catch(e) {}
+  S.user = null; S.level = 'basic'; S.maxStep = 0; S.resumeGenerated = false;
+  S.sQs = []; S.sCurrent = 0; S.sScore = 0; S.sAnswers = [];
+  S.pQs = []; S.pCurrent = 0; S.pScore = 0; S.pAnswers = [];
+  // reset screens
+  document.getElementById('testIntro').style.display = '';
+  document.getElementById('testLoading').style.display = 'none';
+  document.getElementById('testQuiz').style.display = 'none';
+  document.getElementById('testResult').style.display = 'none';
+  document.getElementById('progIntro').style.display = '';
+  document.getElementById('progLoading').style.display = 'none';
+  document.getElementById('progQuiz').style.display = 'none';
+  document.getElementById('progResult').style.display = 'none';
+  goTo(0);
+}
+
+// ── SCREENING ─────────────────────────────────────────────────────────────────
+async function startScreening() {
+  document.getElementById('testIntro').style.display = 'none';
+  document.getElementById('testLoading').style.display = '';
+  const msgs = ['Analysing your profile…','Crafting personalised questions…','Calibrating difficulty levels…'];
+  let mi = 0; const lt = document.getElementById('loadTxt');
+  const iv = setInterval(() => { lt.textContent = msgs[mi++ % msgs.length]; }, 1400);
+  try {
+    const data = await api('/api/questions/screening', 'POST', { skills: S.user?.skills, interests: S.user?.interests });
+    S.sQs = data.questions; S.sCurrent = 0; S.sScore = 0; S.sAnswers = [];
+    clearInterval(iv);
+    document.getElementById('testLoading').style.display = 'none';
+    document.getElementById('testQuiz').style.display = '';
+    renderQ();
+  } catch(e) {
+    clearInterval(iv);
+    document.getElementById('testLoading').innerHTML = `<div class="alert alert-error" style="margin:1rem">❌ ${e.message}</div>`;
+  }
+}
+
+function renderQ() {
+  const q = S.sQs[S.sCurrent];
+  document.getElementById('qCount').textContent = `Q ${S.sCurrent+1}/${S.sQs.length}`;
+  document.getElementById('qScore').textContent = `Score: ${S.sScore}`;
+  document.getElementById('qTag').textContent = q.tag || 'General';
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('qProg').style.width = `${((S.sCurrent + 1) / S.sQs.length) * 100}%`;
+  document.getElementById('qNext').style.display = 'none';
+  document.getElementById('qExpl').style.display = 'none';
+  const grid = document.getElementById('qOpts'); grid.innerHTML = '';
+  (q.options || q.opts || []).forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-label">${'ABCD'[i]}</span>${opt.replace(/^[A-D]\.\s*/,'')}`;
+    btn.onclick = () => pickQ(i, btn, q);
+    grid.appendChild(btn);
+  });
+}
+function pickQ(idx, btn, q) {
+  document.querySelectorAll('#qOpts .option-btn').forEach(b => { b.onclick = null; b.style.cursor = 'default'; });
+  const correct = q.answer;
+  if (idx === correct) { btn.classList.add('correct'); S.sScore++; }
+  else { btn.classList.add('wrong'); document.querySelectorAll('#qOpts .option-btn')[correct]?.classList.add('correct'); }
+  S.sAnswers.push(idx);
+  document.getElementById('qScore').textContent = `Score: ${S.sScore}`;
+  if (q.explanation) { document.getElementById('qExpl').textContent = '💡 ' + q.explanation; document.getElementById('qExpl').style.display = ''; }
+  document.getElementById('qNext').style.display = '';
+}
+function nextQ() {
+  S.sCurrent++;
+  if (S.sCurrent >= S.sQs.length) finishScreening();
+  else renderQ();
+}
+async function finishScreening() {
+  document.getElementById('testQuiz').style.display = 'none';
+  document.getElementById('testResult').style.display = '';
+  S.level = S.sScore >= 15 ? 'advanced' : 'basic';
+  document.getElementById('rScore').textContent = `${S.sScore}/${S.sQs.length}`;
+  document.getElementById('rCircle').style.setProperty('--pct', `${(S.sScore/S.sQs.length)*360}deg`);
+  const badge = document.getElementById('rBadge');
+  if (S.level === 'advanced') { badge.textContent = '🚀 Advanced Level'; badge.className = 'level-badge level-advanced'; document.getElementById('rMsg').textContent = `Excellent! ${S.sScore}/20 — you qualify for an Advanced Roadmap with deeper, production-grade content.`; }
+  else { badge.textContent = '📘 Basic Level'; badge.className = 'level-badge level-basic'; document.getElementById('rMsg').textContent = `You scored ${S.sScore}/20 — you'll receive a foundational roadmap built to grow you step by step.`; }
+  await api('/api/questions/screening/submit','POST',{ score:S.sScore, total:S.sQs.length, answers:S.sAnswers, questions:S.sQs });
+}
+
+// ── ROADMAP ───────────────────────────────────────────────────────────────────
+async function goToRoadmap() {
+  goTo(5);
+  const u = S.user;
+  document.getElementById('rmTitle').textContent = `${S.level==='advanced'?'Advanced':'Basic'} Roadmap — ${u?.skills||'Tech'}`;
+  document.getElementById('rmSub').textContent = `Personalised for ${u?.name} • ${u?.skills} • ${u?.interests}`;
+  try {
+    const data = await api('/api/roadmap/generate','POST',{ level: S.level, skills: u?.skills, interests: u?.interests });
+    S.roadmapData = data;
+    document.getElementById('rmLoading').style.display = 'none';
+    document.getElementById('rmContent').style.display = '';
+    document.getElementById('rmActions').style.display = '';
+    buildWeeks('rm4', data.weeks_4);
+    buildWeeks('rm8', data.weeks_8);
+  } catch(e) {
+    document.getElementById('rmLoading').innerHTML = `<div class="alert alert-error">❌ ${e.message}</div>`;
+  }
+}
+function buildWeeks(cId, weeks) {
+  const el = document.getElementById(cId); el.innerHTML = '';
+  const planKey = cId === 'rm4' ? '4' : '8'; // '4' or '8'
+
+  (weeks||[]).forEach((w, wi) => {
+    const topics = w.topics || [];
+    const weekKey = `rm_${S.user?.id}_${S.level}_${planKey}_w${w.week}`;
+
+    // Load saved state from localStorage
+    const saved = JSON.parse(localStorage.getItem(weekKey) || '[]');
+
+    const div = document.createElement('div');
+    div.className = 'week-card' + (wi === 0 ? ' expanded' : '');
+    div.dataset.weekKey = weekKey;
+    div.dataset.topicCount = topics.length;
+
+    const doneCount = saved.filter(Boolean).length;
+    const allDone = topics.length > 0 && doneCount === topics.length;
+    const pct = topics.length ? Math.round((doneCount / topics.length) * 100) : 0;
+
+    div.innerHTML = `
+      <div class="week-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <div>
+          <div class="week-number">WEEK ${w.week}</div>
+          <div class="week-title">${w.title}${allDone ? ' <span class="week-complete-badge">✓ Complete</span>' : ''}</div>
+          <div class="week-progress">
+            <div class="week-progress-bar"><div class="week-progress-fill" style="width:${pct}%"></div></div>
+            <span class="week-progress-label">${doneCount}/${topics.length}</span>
+          </div>
+        </div>
+        <span class="week-chevron">▾</span>
+      </div>
+      <div class="week-body">
+        ${topics.map((t, ti) => {
+          const checked = saved[ti] || false;
+          return `<div class="topic-item" id="${weekKey}_t${ti}">
+            <div class="topic-checkbox${checked ? ' checked' : ''}" onclick="toggleTopic('${weekKey}',${ti},'${planKey}')"></div>
+            <div class="topic-content${checked ? ' done' : ''}">
+              <div class="topic-name">${t.name}</div>
+              <div class="topic-meta">${t.description || ''}</div>
+              ${t.practice_task ? `<div class="topic-meta">✏ ${t.practice_task}</div>` : ''}
+              ${t.project_idea  ? `<div class="topic-meta">🔨 ${t.project_idea}</div>`  : ''}
+              <div style="margin-top:5px">${(t.resources||[]).slice(0,3).map(r =>
+                `<a class="resource-link" href="${r.url}" target="_blank">📎 ${r.title}</a>`
+              ).join('')}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+
+    el.appendChild(div);
+  });
+
+  // Show overall bar and update it
+  const overId = cId === 'rm4' ? 'rmOverall4' : 'rmOverall8';
+  document.getElementById(overId).classList.add('visible');
+  updateOverallProgress(planKey, weeks);
+}
+
+function toggleTopic(weekKey, topicIdx, planKey) {
+  const saved = JSON.parse(localStorage.getItem(weekKey) || '[]');
+  saved[topicIdx] = !saved[topicIdx];
+  localStorage.setItem(weekKey, JSON.stringify(saved));
+
+  // Update checkbox UI
+  const topicEl = document.getElementById(`${weekKey}_t${topicIdx}`);
+  if (topicEl) {
+    const cb      = topicEl.querySelector('.topic-checkbox');
+    const content = topicEl.querySelector('.topic-content');
+    cb.classList.toggle('checked', !!saved[topicIdx]);
+    content.classList.toggle('done', !!saved[topicIdx]);
+  }
+
+  // Recalculate week progress bar
+  const weekCard = document.querySelector(`[data-week-key="${weekKey}"]`);
+  if (weekCard) {
+    const total    = parseInt(weekCard.dataset.topicCount) || 0;
+    const done     = saved.filter(Boolean).length;
+    const pct      = total ? Math.round((done / total) * 100) : 0;
+    const allDone  = total > 0 && done === total;
+    const fill     = weekCard.querySelector('.week-progress-fill');
+    const label    = weekCard.querySelector('.week-progress-label');
+    const title    = weekCard.querySelector('.week-title');
+    if (fill)  fill.style.width  = pct + '%';
+    if (label) label.textContent = `${done}/${total}`;
+    // Update complete badge in title
+    if (title) {
+      const existing = title.querySelector('.week-complete-badge');
+      if (allDone && !existing) {
+        title.insertAdjacentHTML('beforeend', ' <span class="week-complete-badge">✓ Complete</span>');
+      } else if (!allDone && existing) {
+        existing.remove();
+      }
+    }
+  }
+
+  // Recalculate overall progress
+  const cId  = planKey === '4' ? 'rm4' : 'rm8';
+  const cont = document.getElementById(cId);
+  if (cont) {
+    const allCards = cont.querySelectorAll('[data-week-key]');
+    let totalTopics = 0, totalDone = 0;
+    allCards.forEach(card => {
+      const wk   = card.dataset.weekKey;
+      const cnt  = parseInt(card.dataset.topicCount) || 0;
+      const sv   = JSON.parse(localStorage.getItem(wk) || '[]');
+      totalTopics += cnt;
+      totalDone   += sv.filter(Boolean).length;
+    });
+    const overallPct = totalTopics ? Math.round((totalDone / totalTopics) * 100) : 0;
+    document.getElementById(`rmFill${planKey}`).style.width  = overallPct + '%';
+    document.getElementById(`rmPct${planKey}`).textContent   = overallPct + '%';
+    const completeEl = document.getElementById(`rmComplete${planKey}`);
+    completeEl.classList.toggle('visible', overallPct === 100);
+  }
+}
+
+function updateOverallProgress(planKey, weeks) {
+  const uid   = S.user?.id;
+  const level = S.level;
+  let totalTopics = 0, totalDone = 0;
+  (weeks || []).forEach(w => {
+    const wk  = `rm_${uid}_${level}_${planKey}_w${w.week}`;
+    const cnt = (w.topics || []).length;
+    const sv  = JSON.parse(localStorage.getItem(wk) || '[]');
+    totalTopics += cnt;
+    totalDone   += sv.filter(Boolean).length;
+  });
+  const pct = totalTopics ? Math.round((totalDone / totalTopics) * 100) : 0;
+  document.getElementById(`rmFill${planKey}`).style.width  = pct + '%';
+  document.getElementById(`rmPct${planKey}`).textContent   = pct + '%';
+  const completeEl = document.getElementById(`rmComplete${planKey}`);
+  if (completeEl) completeEl.classList.toggle('visible', pct === 100);
+}
+
+function resetProgress(planKey) {
+  if (!confirm(`Reset all progress for the ${planKey}-week plan? This cannot be undone.`)) return;
+  const uid   = S.user?.id;
+  const level = S.level;
+  // Remove all keys for this plan
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith(`rm_${uid}_${level}_${planKey}_`)) localStorage.removeItem(k);
+  });
+  // Rebuild the plan
+  const cId = planKey === '4' ? 'rm4' : 'rm8';
+  const weeks = planKey === '4' ? S.roadmapData?.weeks_4 : S.roadmapData?.weeks_8;
+  if (weeks) buildWeeks(cId, weeks);
+}
+
+function switchTab(w) {
+  document.getElementById('tab4').classList.toggle('active', w === '4');
+  document.getElementById('tab8').classList.toggle('active', w === '8');
+  document.getElementById('rm4').style.display      = w === '4' ? '' : 'none';
+  document.getElementById('rm8').style.display      = w === '8' ? '' : 'none';
+  document.getElementById('rmOverall4').style.display = w === '4' && document.getElementById('rmOverall4').classList.contains('visible') ? '' : (w === '4' ? '' : 'none');
+  document.getElementById('rmOverall8').style.display = w === '8' && document.getElementById('rmOverall8').classList.contains('visible') ? '' : (w === '8' ? '' : 'none');
+}
+
+// ── PROGRESS TEST ─────────────────────────────────────────────────────────────
+async function startProgress() {
+  document.getElementById('progIntro').style.display = 'none';
+  document.getElementById('progLoading').style.display = '';
+  try {
+    const data = await api('/api/questions/progress','POST',{ skills:S.user?.skills, interests:S.user?.interests, level:S.level });
+    S.pQs = data.questions; S.pCurrent = 0; S.pScore = 0; S.pAnswers = [];
+    document.getElementById('progLoading').style.display = 'none';
+    document.getElementById('progQuiz').style.display = '';
+    renderP();
+  } catch(e) {
+    document.getElementById('progLoading').innerHTML = `<div class="alert alert-error">❌ ${e.message}</div>`;
+  }
+}
+function renderP() {
+  const q = S.pQs[S.pCurrent];
+  document.getElementById('pCount').textContent = `Q ${S.pCurrent+1}/${S.pQs.length}`;
+  document.getElementById('pScore').textContent = `Score: ${S.pScore}`;
+  document.getElementById('pTag').textContent = q.tag || 'General';
+  document.getElementById('pText').textContent = q.q;
+  document.getElementById('pProg').style.width = `${((S.pCurrent+1)/S.pQs.length)*100}%`;
+  document.getElementById('pNext').style.display = 'none';
+  document.getElementById('pExpl').style.display = 'none';
+  const grid = document.getElementById('pOpts'); grid.innerHTML = '';
+  (q.options||q.opts||[]).forEach((opt,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-label">${'ABCD'[i]}</span>${opt.replace(/^[A-D]\.\s*/,'')}`;
+    btn.onclick = () => pickP(i, btn, q);
+    grid.appendChild(btn);
+  });
+}
+function pickP(idx, btn, q) {
+  document.querySelectorAll('#pOpts .option-btn').forEach(b => { b.onclick = null; b.style.cursor = 'default'; });
+  const correct = q.answer !== undefined ? q.answer : q.ans;
+  if (idx === correct) { btn.classList.add('correct'); S.pScore++; }
+  else { btn.classList.add('wrong'); document.querySelectorAll('#pOpts .option-btn')[correct]?.classList.add('correct'); }
+  S.pAnswers.push(idx);
+  document.getElementById('pScore').textContent = `Score: ${S.pScore}`;
+  if (q.explanation) { document.getElementById('pExpl').textContent = '💡 ' + q.explanation; document.getElementById('pExpl').style.display = ''; }
+  document.getElementById('pNext').style.display = '';
+}
+function nextP() {
+  S.pCurrent++;
+  if (S.pCurrent >= S.pQs.length) finishProgress();
+  else renderP();
+}
+async function finishProgress() {
+  document.getElementById('progQuiz').style.display = 'none';
+  document.getElementById('progResult').style.display = '';
+  document.getElementById('pFinal').textContent = `${S.pScore}/${S.pQs.length}`;
+  document.getElementById('pCircle').style.setProperty('--pct', `${(S.pScore/S.pQs.length)*360}deg`);
+  const pct = Math.round((S.pScore/S.pQs.length)*100);
+  document.getElementById('pMsg').textContent = pct >= 80 ? `Outstanding! ${pct}% — you've mastered the roadmap content.` : pct >= 60 ? `Great progress! ${pct}% — solid understanding with a few areas to revisit.` : `Good effort! ${pct}% — consider reviewing your roadmap before moving forward.`;
+  await api('/api/questions/progress/submit','POST',{ score:S.pScore, total:S.pQs.length, answers:S.pAnswers });
+}
+
+// ── RESUME ────────────────────────────────────────────────────────────────────
+async function genResume() {
+  try {
+    const r = await api('/api/resume/generate','POST');
+    const techSkills = r.technical_skills || {};
+    const html = `<div class="resume-paper" id="resumeDoc">
+      <div class="resume-name">${r.name}</div>
+      <div class="resume-role">${(r.skills||[])[0]||''} Developer • ${S.user?.interests||''} Enthusiast</div>
+      <div class="resume-contact">
+        ${r.email?`<span>✉ ${r.email}</span>`:''}
+        ${r.phone?`<span>📱 ${r.phone}</span>`:''}
+        ${r.github?`<span>🔗 ${r.github}</span>`:''}
+        ${r.linkedin?`<span>💼 ${r.linkedin}</span>`:''}
+      </div>
+
+      ${r.career_objective?`<div class="resume-section"><div class="resume-section-title">Career Objective</div>
+        <div style="font-size:0.8rem;color:#4a5568;line-height:1.6">${r.career_objective}</div></div>`:''}
+
+      <div class="resume-section"><div class="resume-section-title">Professional Summary</div>
+        <div style="font-size:0.8rem;color:#4a5568;line-height:1.6">${r.summary||''}</div></div>
+
+      <div class="resume-section"><div class="resume-section-title">Technical Skills</div>
+        ${techSkills.languages?.length?`<div style="margin-bottom:4px"><strong style="font-size:0.75rem;color:#374151">Languages:</strong> ${techSkills.languages.map(s=>`<span class="resume-skill-tag">${s}</span>`).join('')}</div>`:''}
+        ${techSkills.frameworks?.length?`<div style="margin-bottom:4px"><strong style="font-size:0.75rem;color:#374151">Frameworks:</strong> ${techSkills.frameworks.map(s=>`<span class="resume-skill-tag">${s}</span>`).join('')}</div>`:''}
+        ${techSkills.tools?.length?`<div style="margin-bottom:4px"><strong style="font-size:0.75rem;color:#374151">Tools:</strong> ${techSkills.tools.map(s=>`<span class="resume-skill-tag">${s}</span>`).join('')}</div>`:''}
+        ${techSkills.databases?.length?`<div style="margin-bottom:4px"><strong style="font-size:0.75rem;color:#374151">Databases:</strong> ${techSkills.databases.map(s=>`<span class="resume-skill-tag">${s}</span>`).join('')}</div>`:''}
+        ${!(techSkills.languages||techSkills.frameworks||techSkills.tools||techSkills.databases)?`<div>${(r.skills||[]).map(s=>`<span class="resume-skill-tag">${s}</span>`).join('')}</div>`:''}
+      </div>
+
+      ${r.soft_skills?.length?`<div class="resume-section"><div class="resume-section-title">Soft Skills</div>
+        <div>${r.soft_skills.map(s=>`<span class="resume-skill-tag" style="background:#f0fdf4;color:#166534">${s}</span>`).join('')}</div></div>`:''}
+
+      <div class="resume-section"><div class="resume-section-title">Education</div>
+        ${(r.education||[]).map(e=>`<div class="resume-item">
+          <div class="resume-item-title">${e.degree}</div>
+          <div class="resume-item-sub">${e.institution}${e.year?' • '+e.year:''}${e.gpa?' • GPA: '+e.gpa:''}</div>
+          ${e.relevant_courses?.length?`<div style="font-size:0.75rem;color:#6b7280;margin-top:2px">Relevant Courses: ${e.relevant_courses.join(', ')}</div>`:''}
+        </div>`).join('')}</div>
+
+      ${(r.experience||[]).filter(e=>e.title).length?`<div class="resume-section"><div class="resume-section-title">Experience</div>
+        ${r.experience.map(e=>`<div class="resume-item">
+          <div class="resume-item-title">${e.title}${e.company?' — '+e.company:''}</div>
+          <div class="resume-item-sub">${e.duration||''}</div>
+          ${(e.points||[]).map(p=>`<div class="resume-item-desc">• ${p}</div>`).join('')}
+        </div>`).join('')}</div>`:''}
+
+      <div class="resume-section"><div class="resume-section-title">Projects</div>
+        ${(r.projects||[]).map(p=>`<div class="resume-item">
+          <div class="resume-item-title">${p.title}${p.github_link?` <span style="font-size:0.72rem;color:#2563eb;font-weight:400">| ${p.github_link}</span>`:''}</div>
+          <div class="resume-item-sub">${p.tech_stack||''}</div>
+          <div class="resume-item-desc">${p.description||''}</div>
+        </div>`).join('')}</div>
+
+      ${r.achievements?.length?`<div class="resume-section"><div class="resume-section-title">Achievements</div>
+        ${r.achievements.map(a=>`<div class="resume-item-desc">• ${a}</div>`).join('')}</div>`:''}
+
+      ${r.certifications?.length?`<div class="resume-section"><div class="resume-section-title">Certifications</div>
+        ${r.certifications.map(c=>`<div class="resume-item-desc">• ${c}</div>`).join('')}</div>`:''}
+
+      ${r.languages_known?.length?`<div class="resume-section"><div class="resume-section-title">Languages Known</div>
+        <div>${r.languages_known.map(l=>`<span class="resume-skill-tag" style="background:#faf5ff;color:#6b21a8">${l}</span>`).join('')}</div></div>`:''}
+    </div>`;
+    document.getElementById('resumeLoading').style.display = 'none';
+    document.getElementById('resumeOut').innerHTML = html;
+    document.getElementById('resumeOut').style.display = '';
+    document.getElementById('resumeActions').style.display = '';
+    S.resumeGenerated = true;
+  } catch(e) {
+    document.getElementById('resumeLoading').innerHTML = `<div class="alert alert-error">❌ ${e.message}</div>`;
+  }
+}
+function regenResume() {
+  document.getElementById('resumeOut').style.display = 'none';
+  document.getElementById('resumeActions').style.display = 'none';
+  document.getElementById('resumeLoading').style.display = '';
+  genResume();
+}
+function printResume() {
+  const el = document.getElementById('resumeDoc');
+  if (!el) return;
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>${S.user?.name} — Resume</title>
+  <style>body{font-family:Arial,sans-serif;padding:2.5rem;max-width:820px;margin:auto}
+  .resume-name{font-size:1.6rem;font-weight:700}.resume-role{color:#555;margin-bottom:0.75rem}
+  .resume-contact{display:flex;gap:14px;flex-wrap:wrap;font-size:0.8rem;color:#888;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:2px solid #e2e8f0}
+  .resume-section{margin-bottom:1rem}.resume-section-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2563eb;margin-bottom:0.45rem}
+  .resume-skill-tag{display:inline-block;background:#eff6ff;color:#1d4ed8;font-size:0.72rem;padding:2px 8px;border-radius:4px;margin:2px}
+  .resume-item{margin-bottom:0.6rem}.resume-item-title{font-size:0.85rem;font-weight:600}
+  .resume-item-sub{font-size:0.75rem;color:#718096}.resume-item-desc{font-size:0.78rem;color:#4a5568;line-height:1.5}
+  </style></head><body>${el.innerHTML}</body></html>`);
+  w.document.close(); w.print();
+}
+
+// ── PROFILE ───────────────────────────────────────────────────────────────────
+function openProfile() {
+  populateProfileView();
+  document.getElementById('profileOverlay').classList.add('active');
+  switchProfileTab('view', document.querySelector('.profile-tab'));
+}
+
+function closeProfile() {
+  document.getElementById('profileOverlay').classList.remove('active');
+}
+
+function switchProfileTab(tab, btn) {
+  document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.profile-tab-content').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('pftab-' + tab).classList.add('active');
+  if (tab === 'history') loadProfileHistory();
+  if (tab === 'edit') populateEditForm();
+  if (tab === 'password') clearPasswordForm();
+}
+
+function populateProfileView() {
+  const u = S.user;
+  if (!u) return;
+  // Avatar initials
+  const initials = (u.name || '?').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('pfAvatar').textContent = initials;
+  document.getElementById('pfHeaderName').textContent = u.name || '—';
+  const typeLabels = { student: '🎓 Student', school: '🏫 School Student', passedOut: '💼 Professional' };
+  document.getElementById('pfHeaderType').textContent = typeLabels[u.user_type] || u.user_type || '';
+
+  const set = (id, val, isLink) => {
+    const el = document.getElementById(id);
+    if (!val || val === '') { el.innerHTML = '<span class="pf-empty">Not set</span>'; return; }
+    if (isLink) { el.innerHTML = `<a href="${val}" target="_blank">${val}</a>`; return; }
+    el.textContent = val;
+  };
+
+  set('pf-name', u.name);
+  set('pf-email', u.email);
+  set('pf-phone', u.phone);
+
+  const typeClass = { student: 'pf-badge-student', school: 'pf-badge-school', passedOut: 'pf-badge-passedOut' };
+  document.getElementById('pf-type').innerHTML = `<span class="pf-badge ${typeClass[u.user_type] || ''}">${u.user_type || '—'}</span>`;
+
+  set('pf-institution', u.college || u.school);
+  set('pf-qual', u.qualification);
+  set('pf-skills', u.skills);
+  set('pf-interests', u.interests);
+  set('pf-exp', u.experience);
+  set('pf-github', u.github, true);
+  set('pf-linkedin', u.linkedin, true);
+
+  if (u.created_at) {
+    document.getElementById('pf-joined').textContent = new Date(u.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  } else {
+    document.getElementById('pf-joined').innerHTML = '<span class="pf-empty">—</span>';
+  }
+}
+
+async function loadProfileHistory() {
+  const listEl = document.getElementById('pf-history-list');
+  listEl.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:0.85rem">Loading…</div>';
+  try {
+    const data = await api('/api/history');
+    const assessments = data.assessments || [];
+
+    const screening = assessments.filter(a => a.type === 'screening');
+    const progress  = assessments.filter(a => a.type === 'progress');
+    const latestLevel = screening.length ? screening[0].level : (S.level || '—');
+
+    document.getElementById('pfst-screening').textContent = screening.length;
+    document.getElementById('pfst-progress').textContent  = progress.length;
+    document.getElementById('pfst-level').textContent     = latestLevel || '—';
+
+    if (!assessments.length) {
+      listEl.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:0.85rem">No assessments taken yet.</div>';
+      return;
+    }
+
+    listEl.innerHTML = assessments.map(a => {
+      const pct = a.total ? Math.round((a.score / a.total) * 100) : 0;
+      const col = a.type === 'screening' ? 'var(--accent)' : 'var(--green)';
+      const date = a.taken_at ? new Date(a.taken_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+      const lvlBadge = a.level ? `<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:${a.level==='advanced'?'rgba(129,140,248,0.15)':'rgba(251,191,36,0.15)'};color:${a.level==='advanced'?'var(--accent2)':'var(--amber)'}">${a.level}</span>` : '';
+      return `<div class="pf-assess-item">
+        <div>
+          <span style="text-transform:capitalize;font-weight:500">${a.type}</span>
+          ${lvlBadge ? '&nbsp;' + lvlBadge : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-family:'JetBrains Mono',monospace;color:${col}">${a.score}/${a.total} (${pct}%)</span>
+          <span style="color:var(--muted);font-size:0.75rem">${date}</span>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = `<div style="text-align:center;padding:1rem;color:var(--red);font-size:0.82rem">Failed to load history: ${e.message}</div>`;
+  }
+}
+
+function populateEditForm() {
+  const u = S.user;
+  if (!u) return;
+  document.getElementById('pe-name').value     = u.name     || '';
+  document.getElementById('pe-phone').value    = u.phone    || '';
+  document.getElementById('pe-college').value  = u.college  || '';
+  document.getElementById('pe-school').value   = u.school   || '';
+  document.getElementById('pe-qual').value     = u.qualification || '';
+  document.getElementById('pe-exp').value      = u.experience   || '';
+  document.getElementById('pe-skills').value   = u.skills   || '';
+  document.getElementById('pe-interests').value= u.interests|| '';
+  document.getElementById('pe-github').value   = u.github   || '';
+  document.getElementById('pe-linkedin').value = u.linkedin || '';
+  document.getElementById('pf-edit-ok').style.display  = 'none';
+  document.getElementById('pf-edit-err').style.display = 'none';
+}
+
+function cancelEdit() {
+  switchProfileTab('view', document.querySelectorAll('.profile-tab')[0]);
+}
+
+async function saveProfile() {
+  const okEl  = document.getElementById('pf-edit-ok');
+  const errEl = document.getElementById('pf-edit-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+  const btn = document.getElementById('btnSaveProfile');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const payload = {
+    name:       document.getElementById('pe-name').value.trim(),
+    phone:      document.getElementById('pe-phone').value.trim(),
+    college:    document.getElementById('pe-college').value.trim(),
+    school:     document.getElementById('pe-school').value.trim(),
+    qualification: document.getElementById('pe-qual').value.trim(),
+    experience: document.getElementById('pe-exp').value.trim(),
+    skills:     document.getElementById('pe-skills').value.trim(),
+    interests:  document.getElementById('pe-interests').value.trim(),
+    github:     document.getElementById('pe-github').value.trim(),
+    linkedin:   document.getElementById('pe-linkedin').value.trim(),
+  };
+
+  if (!payload.name) {
+    errEl.textContent = 'Name cannot be empty.';
+    errEl.style.display = '';
+    btn.disabled = false; btn.textContent = 'Save Changes';
+    return;
+  }
+
+  try {
+    const data = await api('/api/profile', 'PUT', payload);
+    S.user = { ...S.user, ...payload };
+    okEl.textContent = '✓ Profile updated successfully!';
+    okEl.style.display = '';
+    populateProfileView();
+    setTimeout(() => { okEl.style.display = 'none'; }, 3000);
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Changes';
+  }
+}
+// ── CHANGE PASSWORD (profile modal) ──────────────────────────────────────────
+function clearPasswordForm() {
+  ['pw-current','pw-new','pw-confirm'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pf-pw-ok').style.display  = 'none';
+  document.getElementById('pf-pw-err').style.display = 'none';
+}
+
+async function changePassword() {
+  const okEl  = document.getElementById('pf-pw-ok');
+  const errEl = document.getElementById('pf-pw-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+
+  const current = document.getElementById('pw-current').value;
+  const newPw   = document.getElementById('pw-new').value;
+  const confirm = document.getElementById('pw-confirm').value;
+
+  if (!current || !newPw || !confirm) {
+    errEl.textContent = 'All fields are required.';
+    errEl.style.display = ''; return;
+  }
+  if (newPw.length < 8) {
+    errEl.textContent = 'New password must be at least 8 characters.';
+    errEl.style.display = ''; return;
+  }
+  if (newPw !== confirm) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.style.display = ''; return;
+  }
+
+  const btn = document.getElementById('btnChangePassword');
+  btn.disabled = true; btn.textContent = 'Changing…';
+  try {
+    await api('/api/password/change', 'POST', {
+      current_password: current,
+      new_password:     newPw,
+      confirm_password: confirm,
+    });
+    okEl.textContent = '✓ Password changed successfully!';
+    okEl.style.display = '';
+    clearPasswordForm();
+    setTimeout(() => { okEl.style.display = 'none'; }, 4000);
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Change Password';
+  }
+}
+
+// ── FORGOT / RESET PASSWORD MODAL ─────────────────────────────────────────────
+function openForgotPassword() {
+  document.getElementById('fpOverlay').classList.add('active');
+  switchFpStep(1);
+}
+
+function closeForgotPassword() {
+  document.getElementById('fpOverlay').classList.remove('active');
+  // reset state
+  ['fp-email','fp-token-input','fp-new-pw','fp-confirm-pw'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('fp-token-result').style.display = 'none';
+  document.getElementById('fp-req-err').style.display   = 'none';
+  document.getElementById('fp-reset-ok').style.display  = 'none';
+  document.getElementById('fp-reset-err').style.display = 'none';
+}
+
+function switchFpStep(n) {
+  document.getElementById('fpStep1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('fpStep2').style.display = n === 2 ? '' : 'none';
+  document.getElementById('fpStepBtn1').classList.toggle('active', n === 1);
+  document.getElementById('fpStepBtn2').classList.toggle('active', n === 2);
+}
+
+async function requestResetToken() {
+  const errEl = document.getElementById('fp-req-err');
+  errEl.style.display = 'none';
+  document.getElementById('fp-token-result').style.display = 'none';
+
+  const email = document.getElementById('fp-email').value.trim();
+  if (!email) { errEl.textContent = 'Please enter your email.'; errEl.style.display = ''; return; }
+
+  const btn = document.getElementById('btnRequestToken');
+  btn.disabled = true; btn.textContent = 'Requesting…';
+  try {
+    const data = await api('/api/password/forgot', 'POST', { email });
+    if (data.reset_token) {
+      document.getElementById('fp-token-display').textContent = data.reset_token;
+      document.getElementById('fp-token-result').style.display = '';
+      // Pre-fill token in step 2
+      document.getElementById('fp-token-input').value = data.reset_token;
+    } else {
+      // Email not found — still show generic message
+      errEl.textContent = data.message || 'If that email is registered, a token has been generated.';
+      errEl.style.display = '';
+    }
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Get Reset Token →';
+  }
+}
+
+function copyResetToken() {
+  const token = document.getElementById('fp-token-display').textContent;
+  navigator.clipboard.writeText(token).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = '📋 Copy Token'; }, 2000);
+  });
+}
+
+async function submitResetPassword() {
+  const okEl  = document.getElementById('fp-reset-ok');
+  const errEl = document.getElementById('fp-reset-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+
+  const token   = document.getElementById('fp-token-input').value.trim();
+  const newPw   = document.getElementById('fp-new-pw').value;
+  const confirm = document.getElementById('fp-confirm-pw').value;
+
+  if (!token || !newPw || !confirm) {
+    errEl.textContent = 'All fields are required.';
+    errEl.style.display = ''; return;
+  }
+  if (newPw.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.style.display = ''; return;
+  }
+  if (newPw !== confirm) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.style.display = ''; return;
+  }
+
+  const btn = document.getElementById('btnResetPassword');
+  btn.disabled = true; btn.textContent = 'Resetting…';
+  try {
+    const data = await api('/api/password/reset', 'POST', {
+      token,
+      new_password:     newPw,
+      confirm_password: confirm,
+    });
+    okEl.textContent = '✓ ' + data.message + ' You can now close this and log in.';
+    okEl.style.display = '';
+    document.getElementById('fp-token-input').value = '';
+    document.getElementById('fp-new-pw').value      = '';
+    document.getElementById('fp-confirm-pw').value  = '';
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Reset Password →';
+  }
+}
+
+// Close forgot password modal on overlay click
+document.getElementById('fpOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeForgotPassword();
+});
+
+// ── JOB RECOMMENDATIONS ──────────────────────────────────────────────────────
+let _jobsCache = null;
+
+async function loadJobRecommendations(force) {
+  const container = document.getElementById('jobs-content');
+  const btn       = document.getElementById('btnRegenJobs');
+  if (!container) return;
+
+  // Use cache unless forced refresh
+  if (_jobsCache && !force) {
+    renderJobs(_jobsCache);
+    return;
+  }
+
+  // Show spinner
+  container.innerHTML = `
+    <div class="ai-loading" style="padding:2.5rem">
+      <div class="pulse-ring"></div>
+      <div style="color:var(--muted);font-size:0.85rem;margin-top:0.5rem">Analysing your profile &amp; finding best matches…</div>
+      <div style="color:var(--muted);font-size:0.75rem;margin-top:0.5rem;opacity:0.6">This may take 15–30 seconds</div>
+    </div>`;
+  if (btn) { btn.style.display = 'none'; btn.disabled = true; btn.textContent = '⏳ Loading…'; }
+
+  try {
+    const data = await api('/api/jobs/recommend', 'POST', {});
+
+    // Backend returned an error field
+    if (data.error) throw new Error(data.error);
+
+    _jobsCache = data;
+
+    try {
+      renderJobs(data);
+    } catch(renderErr) {
+      console.error('renderJobs error:', renderErr);
+      container.innerHTML = `
+        <div style="text-align:center;padding:2.5rem 1rem">
+          <div style="font-size:2rem;margin-bottom:0.75rem">⚠️</div>
+          <div style="font-size:0.9rem;font-weight:600;margin-bottom:0.4rem">Display error</div>
+          <div style="font-size:0.8rem;color:var(--muted);margin-bottom:1.25rem">${esc(renderErr.message)}</div>
+          <button class="btn btn-primary" style="max-width:220px" onclick="loadJobRecommendations(true)">Retry →</button>
+        </div>`;
+      return;
+    }
+
+    if (btn) { btn.style.display = ''; btn.disabled = false; btn.textContent = '✨ Regenerate'; }
+    const badge = document.getElementById('dnav-badge-jobs');
+    if (badge) badge.style.display = '';
+
+  } catch(e) {
+    console.error('loadJobRecommendations error:', e);
+    container.innerHTML = `
+      <div style="text-align:center;padding:2.5rem 1rem">
+        <div style="font-size:2rem;margin-bottom:0.75rem">⚠️</div>
+        <div style="font-size:0.9rem;font-weight:600;margin-bottom:0.4rem">Could not load recommendations</div>
+        <div style="font-size:0.8rem;color:var(--muted);margin-bottom:1.25rem">${esc(e.message)}</div>
+        <button class="btn btn-primary" style="max-width:220px" onclick="loadJobRecommendations(true)">Retry →</button>
+      </div>`;
+    if (btn) { btn.style.display = 'none'; }
+  }
+}
+
+function renderJobs(data) {
+  const container = document.getElementById('jobs-content');
+  const jobs    = data.jobs || [];
+  const level   = data.level   || 'basic';
+  const scrPct  = data.scr_pct  != null ? data.scr_pct  : '—';
+  const progPct = data.prog_pct != null ? data.prog_pct : '—';
+
+  if (!jobs.length) {
+    container.innerHTML = '<div class="dash-empty">No recommendations available. Complete your profile first.</div>';
+    return;
+  }
+
+  const allGaps   = jobs.flatMap(j => j.skill_gaps || []);
+  const uniqueGaps = [...new Set(allGaps)].length;
+  const levelLabel = level.charAt(0).toUpperCase() + level.slice(1);
+
+  const summaryHtml = `
+    <div class="jobs-summary">
+      <div class="jobs-summary-stat">
+        <div class="jobs-summary-val">${jobs.length}</div>
+        <div class="jobs-summary-key">Roles Found</div>
+      </div>
+      <div class="jobs-summary-stat">
+        <div class="jobs-summary-val" style="color:var(--green)">${jobs[0] ? jobs[0].match_pct : 0}%</div>
+        <div class="jobs-summary-key">Top Match</div>
+      </div>
+      <div class="jobs-summary-stat">
+        <div class="jobs-summary-val" style="color:var(--accent2)">${uniqueGaps}</div>
+        <div class="jobs-summary-key">Skills to Learn</div>
+      </div>
+      <div class="jobs-summary-stat">
+        <div class="jobs-summary-val" style="color:var(--amber)">${levelLabel}</div>
+        <div class="jobs-summary-key">Your Level</div>
+      </div>
+    </div>`;
+
+  const catClassMap = {
+    'Best Match':   'jc-best',
+    'Strong Match': 'jc-strong',
+    'Good Match':   'jc-good',
+    'Stretch Goal': 'jc-stretch',
+  };
+
+  const cardsHtml = jobs.map(job => {
+    const catClass   = catClassMap[job.category] || 'jc-good';
+    const haveSkills = (job.candidate_has || []).map(s => `<span class="skill-tag skill-have">✓ ${esc(s)}</span>`).join('');
+    const gapSkills  = (job.skill_gaps    || []).map(s => `<span class="skill-tag skill-gap">+ ${esc(s)}</span>`).join('');
+    const companies  = (job.top_companies || []).map(c => `<span class="company-tag">${esc(c)}</span>`).join('');
+
+    return `
+      <div class="job-card">
+        <div class="job-card-head">
+          <div class="job-title">${esc(job.title || '')}</div>
+          <span class="job-category ${catClass}">${esc(job.category || '')}</span>
+        </div>
+        <div class="job-match-bar">
+          <div class="job-match-track">
+            <div class="job-match-fill" style="width:${job.match_pct || 0}%"></div>
+          </div>
+          <div class="job-match-pct">${job.match_pct || 0}%</div>
+        </div>
+        <div class="job-why">${esc(job.why || '')}</div>
+        <div class="job-meta-row">
+          <div class="job-meta-item"><span>💰</span><span>${esc(job.avg_salary || '—')}</span></div>
+          <div class="job-meta-item"><span>⏱️</span><span>${esc(job.time_to_ready || '—')} to ready</span></div>
+        </div>
+        ${haveSkills ? `<div class="job-skills-section"><div class="job-skills-label">Skills You Have</div><div class="job-skills-row">${haveSkills}</div></div>` : ''}
+        ${gapSkills  ? `<div class="job-skills-section"><div class="job-skills-label">Skills to Learn</div><div class="job-skills-row">${gapSkills}</div></div>`  : ''}
+        ${companies  ? `<div class="job-skills-section"><div class="job-skills-label">Top Hiring Companies</div><div class="job-companies">${companies}</div></div>` : ''}
+      </div>`;
+  }).join('');
+
+  container.innerHTML = summaryHtml + `<div class="jobs-grid">${cardsHtml}</div>`;
+}
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+function applyTheme(mode) {
+  const isLight = mode === 'light';
+  document.body.classList.toggle('light', isLight);
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = isLight ? '☀️' : '🌙';
+  localStorage.setItem('cp-theme', mode);
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.contains('light');
+  applyTheme(isLight ? 'dark' : 'light');
+}
+
+// Restore saved theme on load (after applyTheme is defined)
+(function() {
+  const saved = localStorage.getItem('cp-theme');
+  if (saved === 'light') applyTheme('light');
+})();
+</script>
+</body>
+</html>
