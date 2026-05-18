@@ -965,9 +965,11 @@ Rules:
 def index():
     return render_template("index.html")
 
+# ── INIT DB ON STARTUP (works with both gunicorn and python app.py) ───────────
+init_db()
+
 # ── MAIN ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    init_db()
     print("── AI Provider Status ──────────────────────────")
     if GROQ_API_KEY:
         print(f"✅ Groq        : {GROQ_API_KEY[:12]}...  (primary)")
