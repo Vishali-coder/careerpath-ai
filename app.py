@@ -370,6 +370,17 @@ def ai_json(prompt: str, system: str = "") -> dict | list:
             pass
 
     raise ValueError(f"Could not parse JSON from AI response: {raw[:300]}")
+# ── GLOBAL ERROR HANDLERS (always return JSON, never HTML) ───────────────────
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    print(traceback.format_exc())
+    return jsonify({"error": str(e)}), 500
+
+@app.errorhandler(404)
+def handle_404(e):
+    return jsonify({"error": "Not found"}), 404
+
 # ── HEALTH CHECK ──────────────────────────────────────────────────────────────
 @app.route("/api/health")
 def health():
